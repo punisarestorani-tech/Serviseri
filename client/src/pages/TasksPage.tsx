@@ -4,7 +4,10 @@ import BackButton from "@/components/BackButton";
 import TaskCard from "@/components/TaskCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -51,6 +54,22 @@ export default function TasksPage() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskClient, setNewTaskClient] = useState("");
+  const [newTaskAppliance, setNewTaskAppliance] = useState("");
+
+  const handleAddTask = () => {
+    console.log('New task created:', {
+      description: newTaskDescription,
+      client: newTaskClient,
+      appliance: newTaskAppliance,
+    });
+    setNewTaskDescription("");
+    setNewTaskClient("");
+    setNewTaskAppliance("");
+    setIsAddTaskOpen(false);
+  };
 
   const filteredTasks = mockTasks.filter((task) => {
     const matchesSearch = task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -70,12 +89,81 @@ export default function TasksPage() {
 
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">Tasks</h2>
-          <Button
-            onClick={() => console.log('Add task clicked')}
-            data-testid="button-add-task"
-          >
-            Add Task
-          </Button>
+          <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-task">
+                Add Task
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Task</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="task-description">
+                    Task Description <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="task-description"
+                    placeholder="Enter task description..."
+                    value={newTaskDescription}
+                    onChange={(e) => setNewTaskDescription(e.target.value)}
+                    data-testid="input-task-description"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="task-client">
+                    Client <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={newTaskClient} onValueChange={setNewTaskClient}>
+                    <SelectTrigger id="task-client" data-testid="select-task-client">
+                      <SelectValue placeholder="Select client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Grand Hotel Plaza</SelectItem>
+                      <SelectItem value="2">Riverside Restaurant</SelectItem>
+                      <SelectItem value="3">Marina Bistro</SelectItem>
+                      <SelectItem value="4">Coastal Café</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="task-appliance">
+                    Appliance <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={newTaskAppliance} onValueChange={setNewTaskAppliance}>
+                    <SelectTrigger id="task-appliance" data-testid="select-task-appliance">
+                      <SelectValue placeholder="Select appliance" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Commercial Freezer Unit</SelectItem>
+                      <SelectItem value="2">Ice Maker - Kitchen</SelectItem>
+                      <SelectItem value="3">Walk-in Cooler</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddTaskOpen(false)}
+                    className="flex-1"
+                    data-testid="button-cancel-task"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddTask}
+                    disabled={!newTaskDescription || !newTaskClient || !newTaskAppliance}
+                    className="flex-1"
+                    data-testid="button-create-task"
+                  >
+                    Create Task
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
