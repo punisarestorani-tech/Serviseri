@@ -3,6 +3,9 @@ import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
 import ClientCard from "@/components/ClientCard";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -41,6 +44,25 @@ const mockClients = [
 export default function ClientsPage() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientEmail, setNewClientEmail] = useState("");
+  const [newClientPhone, setNewClientPhone] = useState("");
+  const [newClientAddress, setNewClientAddress] = useState("");
+
+  const handleAddClient = () => {
+    console.log('New client created:', {
+      name: newClientName,
+      email: newClientEmail,
+      phone: newClientPhone,
+      address: newClientAddress,
+    });
+    setNewClientName("");
+    setNewClientEmail("");
+    setNewClientPhone("");
+    setNewClientAddress("");
+    setIsAddClientOpen(false);
+  };
 
   const filteredClients = mockClients.filter((client) =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,6 +80,88 @@ export default function ClientsPage() {
 
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">Clients</h2>
+          <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-client">
+                Add Client
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Client</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client-name">
+                    Client Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="client-name"
+                    placeholder="Enter client name..."
+                    value={newClientName}
+                    onChange={(e) => setNewClientName(e.target.value)}
+                    data-testid="input-client-name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client-email">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="client-email"
+                    type="email"
+                    placeholder="client@example.com"
+                    value={newClientEmail}
+                    onChange={(e) => setNewClientEmail(e.target.value)}
+                    data-testid="input-client-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client-phone">
+                    Phone <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="client-phone"
+                    type="tel"
+                    placeholder="+1 555-0123"
+                    value={newClientPhone}
+                    onChange={(e) => setNewClientPhone(e.target.value)}
+                    data-testid="input-client-phone"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client-address">
+                    Address
+                  </Label>
+                  <Input
+                    id="client-address"
+                    placeholder="Street address, city, state"
+                    value={newClientAddress}
+                    onChange={(e) => setNewClientAddress(e.target.value)}
+                    data-testid="input-client-address"
+                  />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddClientOpen(false)}
+                    className="flex-1"
+                    data-testid="button-cancel-client"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddClient}
+                    disabled={!newClientName || !newClientEmail || !newClientPhone}
+                    className="flex-1"
+                    data-testid="button-create-client"
+                  >
+                    Create Client
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="mb-6">
