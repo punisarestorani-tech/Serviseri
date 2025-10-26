@@ -1,0 +1,374 @@
+# Service Management Application - Complete Specification
+
+## Overview
+Build a full-stack service management web application for technicians who maintain equipment and appliances for hotels, restaurants, and businesses. The app will use **React** frontend, **Supabase** for authentication and database, **Tailwind CSS** for styling, and be prepared for **n8n** workflow automation integration.
+
+---
+
+## Tech Stack
+- **Frontend**: React with Vite
+- **Styling**: Tailwind CSS
+- **Backend/Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **File Storage**: Supabase Storage (for images and documents)
+- **Automation**: n8n integration via webhooks (prepare endpoints)
+- **Routing**: React Router
+- **State Management**: React hooks (useState, useContext)
+
+---
+
+## Database Schema (Supabase Tables)
+
+### 1. User Table (use Supabase Auth, extend with profiles)
+```sql
+profiles
+- id (UUID, references auth.users)
+- user_name (TEXT)
+- created_at (TIMESTAMP)
+```
+
+### 2. Client Table
+```sql
+clients
+- client_id (UUID, PRIMARY KEY)
+- client_name (TEXT)
+- client_email (TEXT)
+- client_phone (TEXT)
+- client_address (TEXT)
+- client_pib (TEXT)
+- client_pdv (TEXT)
+- client_account (TEXT)
+- created_at (TIMESTAMP)
+```
+
+### 3. Appliance Table
+```sql
+appliances
+- appliance_id (UUID, PRIMARY KEY)
+- client_id (UUID, FOREIGN KEY → clients)
+- appliance_name (TEXT)
+- appliance_maker (TEXT)
+- appliance_age (INTEGER)
+- appliance_serial_number (TEXT)
+- appliance_picture (TEXT, URL to Supabase Storage)
+- last_service_date (DATE)
+- next_service_date (DATE)
+- created_at (TIMESTAMP)
+```
+
+### 4. Task Table
+```sql
+tasks
+- task_id (UUID, PRIMARY KEY)
+- client_id (UUID, FOREIGN KEY → clients)
+- appliance_id (UUID, FOREIGN KEY → appliances)
+- user_id (UUID, FOREIGN KEY → auth.users)
+- status (TEXT: 'pending', 'in_progress', 'completed')
+- created_at (TIMESTAMP)
+- completed_at (TIMESTAMP)
+- report_id (UUID, FOREIGN KEY → reports, nullable)
+```
+
+### 5. Report Table
+```sql
+reports
+- report_id (UUID, PRIMARY KEY)
+- task_id (UUID, FOREIGN KEY → tasks)
+- user_id (UUID, FOREIGN KEY → auth.users)
+- description (TEXT)
+- photos (TEXT[], array of URLs to Supabase Storage)
+- spare_parts_used (JSONB, array of {spare_part_id, quantity})
+- work_duration (INTEGER, minutes)
+- created_at (TIMESTAMP)
+```
+
+### 6. Spare Part Table
+```sql
+spare_parts
+- spare_part_id (UUID, PRIMARY KEY)
+- spare_part_name (TEXT)
+- spare_part_maker (TEXT)
+- spare_part_detail (TEXT)
+- spare_part_picture (TEXT, URL to Supabase Storage)
+- spare_part_quantity (INTEGER)
+- created_at (TIMESTAMP)
+```
+
+---
+
+## Application Flow & Pages
+
+### 1. **Sign In Page** (`/login`)
+- Username/email and password fields
+- "Log In" button
+- Use Supabase Auth (`signInWithPassword`)
+- Redirect to Main Page on success
+- Show error messages for failed login
+
+### 2. **Main Page** (`/dashboard`)
+- Display username at top
+- Three main navigation buttons:
+  - **Tasks** - View all tasks
+  - **Clients** - View all clients
+  - **Storage** - Access spare parts, documents, history
+- Sign out button
+
+### 3. **Tasks Page** (`/tasks`)
+- Display username at top
+- "New Task" button (optional, for future admin functionality)
+- List all tasks with:
+  - Task name/description
+  - Client name
+  - Status badge (pending/in progress/completed)
+  - Created date
+- Click on task → Go to Task Details page
+- Back button to Main Page
+
+### 4. **Task Details Page** (`/tasks/:taskId`)
+- Display:
+  - Client details (name, contact)
+  - Appliance details (name, maker, serial number)
+  - Task status
+  - Created date
+- "Make Report" button (if status is not 'completed')
+- Back button to Tasks page
+
+### 5. **Create Report Page** (`/tasks/:taskId/report`)
+- Form with:
+  - Description (textarea)
+  - Photo upload (multiple files, store in Supabase Storage)
+  - Spare parts used (dropdown/search to select from spare_parts table, with quantity)
+  - Work duration (number input, in minutes or hours)
+- "Submit Report" button:
+  - Create report in database
+  - Update task status to 'completed'
+  - Trigger n8n webhook (send task completion data)
+  - Redirect to Tasks page
+- Back button
+
+### 6. **Clients Page** (`/clients`)
+- Display username at top
+- "New Client" button (optional for future)
+- List all clients:
+  - Client name
+  - Contact info
+  - Number of appliances
+- Click on client → Go to Client Details page
+- Back button to Main Page
+
+### 7. **Client Details Page** (`/clients/:clientId`)
+- Display client information (name, email, phone, address, PIB, PDV, account)
+- List all appliances for this client:
+  - Appliance name
+  - Maker
+  - Last service date
+- Click on appliance → Go to Appliance Details page
+- Back button to Clients page
+
+### 8. **Appliance Details Page** (`/appliances/:applianceId`)
+- Display:
+  - Appliance name, maker, serial number, age
+  - Photo (if available)
+  - Last service date
+  - Next service date
+- **Appliance History** section:
+  - List all completed tasks/reports for this appliance
+  - Show date, description, technician name
+- "Upload Picture" button (update appliance photo)
+- "Print Appliance Info" button (generate printable view or PDF)
+- Back button to Client Details
+
+### 9. **Storage Page** (`/storage`)
+- Display username at top
+- Three sections/tabs:
+  - **Spare Parts**: List all spare parts with current quantity, details
+  - **Documents**: Upload/view PDF documents, manuals (Supabase Storage)
+  - **History**: View all completed service reports (all technicians, all clients)
+- Back button to Main Page
+
+---
+
+## n8n Integration Setup
+
+### Webhook Endpoints to Prepare:
+The app should be ready to send data to n8n webhooks for automation. Create a configuration file or environment variables for webhook URLs.
+
+### Events to Trigger:
+1. **Task Completed** - Send webhook when task status changes to 'completed'
+   - Payload: `{task_id, client_name, client_email, appliance_name, report_id, completed_at}`
+   
+2. **New Task Created** - (Optional, for future admin panel)
+   - Payload: `{task_id, assigned_user_id, client_name, appliance_name, created_at}`
+
+3. **Spare Part Low Stock** - (Optional, check when quantity < threshold)
+   - Payload: `{spare_part_id, spare_part_name, current_quantity}`
+
+### Implementation:
+- Create a `utils/webhooks.js` file with functions like:
+  - `sendTaskCompletedWebhook(taskData)`
+  - `sendNewTaskWebhook(taskData)`
+- Call these functions after relevant database operations
+- Use `fetch()` to POST to n8n webhook URLs
+- Handle errors gracefully (log but don't block app if webhook fails)
+
+---
+
+## File Upload (Supabase Storage)
+
+### Buckets to Create in Supabase:
+1. **appliance-photos** - For appliance images
+2. **report-photos** - For service report photos
+3. **documents** - For manuals, contracts, PDFs
+4. **spare-part-photos** - For spare part images
+
+### Implementation:
+- Use Supabase Storage API for upload
+- Generate public URLs after upload
+- Store URLs in database (not the files themselves)
+- Implement image preview before upload
+- Add file size validation (max 5MB per image)
+
+---
+
+## UI/UX Requirements
+
+### Design:
+- Modern, clean interface using Tailwind CSS
+- Mobile-responsive (works on phones and tablets)
+- Consistent color scheme:
+  - Primary: Blue/Teal for buttons and headers
+  - Success: Green for completed status
+  - Warning: Yellow for in-progress
+  - Danger: Red for critical actions
+- Card-based layouts for lists
+- Loading spinners for async operations
+- Toast notifications for success/error messages
+
+### Navigation:
+- Clear back buttons on every page
+- Breadcrumb navigation (optional but helpful)
+- Bottom navigation bar for mobile (Tasks, Clients, Storage)
+- Logout button always visible
+
+### Forms:
+- Clear labels and placeholders
+- Validation before submit
+- Disabled submit buttons while processing
+- Error messages displayed near relevant fields
+
+---
+
+## Authentication & Authorization
+
+### Setup:
+- Use Supabase Auth with email/password
+- Implement protected routes (redirect to login if not authenticated)
+- Store user session in context/state
+- Auto-logout on session expiration
+
+### Future Considerations:
+- All technicians currently see all tasks (no filtering by assigned user)
+- Can add admin role later for task assignment
+- Can add permissions for creating/editing clients and appliances
+
+---
+
+## Additional Features
+
+### Search & Filters:
+- Search clients by name
+- Filter tasks by status
+- Sort tasks by date (newest first)
+
+### Print Functionality:
+- Appliance details page should have printable version
+- Use `@media print` CSS or generate PDF with a library
+
+### Offline Considerations:
+- Not required for MVP, but consider adding later
+- Service workers for offline access to task list
+- Queue reports for sync when back online
+
+---
+
+## Environment Variables (.env)
+
+```
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_N8N_TASK_COMPLETED_WEBHOOK=https://your-n8n-instance/webhook/task-completed
+VITE_N8N_NEW_TASK_WEBHOOK=https://your-n8n-instance/webhook/new-task
+```
+
+---
+
+## Initial Setup Steps for Replit Agent
+
+1. **Initialize React + Vite project**
+2. **Install dependencies**:
+   - `@supabase/supabase-js`
+   - `react-router-dom`
+   - `tailwindcss`
+   - Any other necessary packages
+3. **Setup Tailwind CSS configuration**
+4. **Create Supabase client** (`src/lib/supabaseClient.js`)
+5. **Setup React Router** with all routes
+6. **Create authentication context** for global user state
+7. **Build all pages** as specified above
+8. **Implement database operations** (CRUD for all tables)
+9. **Add file upload functionality**
+10. **Integrate n8n webhook calls**
+11. **Style with Tailwind** for responsive, modern UI
+12. **Test authentication flow**
+13. **Add error handling and loading states**
+
+---
+
+## Notes for Development
+
+- Use functional components with hooks (no class components)
+- Implement proper error boundaries
+- Add loading states for all async operations
+- Use meaningful variable names
+- Comment complex logic
+- Follow React best practices
+- Ensure all database queries use proper foreign key relationships
+- Test file uploads with various file sizes and types
+- Validate all form inputs before submission
+- Display user-friendly error messages (not raw errors)
+
+---
+
+## Success Criteria
+
+✅ User can log in with Supabase Auth  
+✅ User can view list of tasks  
+✅ User can view task details and client/appliance info  
+✅ User can create a service report with photos and spare parts  
+✅ Task status updates to 'completed' after report submission  
+✅ User can browse clients and their appliances  
+✅ User can view appliance service history  
+✅ User can upload and view photos/documents  
+✅ User can view spare parts inventory  
+✅ n8n webhook is triggered when task is completed  
+✅ App is responsive and works on mobile devices  
+✅ All navigation works correctly with back buttons  
+
+---
+
+## Future Enhancements (Not Required for MVP)
+
+- Admin panel for creating tasks and assigning to technicians
+- Push notifications for new task assignments
+- Real-time updates using Supabase Realtime
+- Advanced filtering and search
+- Data export (Excel/CSV)
+- QR code scanning for appliances
+- Client signature on reports
+- Offline mode with service workers
+- Multi-language support
+- Dark mode toggle
+
+---
+
+**Start building this application with the above specifications. Prioritize core functionality (auth, tasks, reports, clients, appliances) before additional features.**
