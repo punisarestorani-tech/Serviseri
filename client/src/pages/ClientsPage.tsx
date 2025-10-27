@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search } from "lucide-react";
 import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Client } from "@shared/schema";
 
 //todo: remove mock functionality
 const mockClients = [
@@ -49,22 +53,48 @@ export default function ClientsPage() {
   const [newClientEmail, setNewClientEmail] = useState("");
   const [newClientPhone, setNewClientPhone] = useState("");
   const [newClientAddress, setNewClientAddress] = useState("");
+  const { toast } = useToast();
+
+  const { data: clients = [], isLoading } = useQuery<Client[]>({
+    queryKey: ["/api/clients"],
+  });
+
+  const createClientMutation = useMutation({
+    mutationFn: async (clientData: any) => {
+      return await apiRequest("POST", "/api/clients", clientData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      toast({
+        title: "Success",
+        description: "Client created successfully",
+      });
+      setNewClientName("");
+      setNewClientEmail("");
+      setNewClientPhone("");
+      setNewClientAddress("");
+      setIsAddClientOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create client",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddClient = () => {
-    console.log('New client created:', {
+    createClientMutation.mutate({
       name: newClientName,
       email: newClientEmail,
       phone: newClientPhone,
-      address: newClientAddress,
+      address: newClientAddress || null,
     });
-    setNewClientName("");
-    setNewClientEmail("");
-    setNewClientPhone("");
-    setNewClientAddress("");
-    setIsAddClientOpen(false);
   };
 
-  const filteredClients = mockClients.filter((client) =>
+  const displayClients = clients.length > 0 ? clients : mockClients;
+  const filteredClients = displayClients.filter((client: any) =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -152,11 +182,11 @@ export default function ClientsPage() {
                   </Button>
                   <Button
                     onClick={handleAddClient}
-                    disabled={!newClientName || !newClientEmail || !newClientPhone}
+                    disabled={!newClientName || !newClientEmail || !newClientPhone || createClientMutation.isPending}
                     className="flex-1"
                     data-testid="button-create-client"
                   >
-                    Create Client
+                    {createClientMutation.isPending ? "Creating..." : "Create Client"}
                   </Button>
                 </div>
               </div>
@@ -179,11 +209,15 @@ export default function ClientsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClients.map((client) => (
+          {filteredClients.map((client: any) => (
             <ClientCard
-              key={client.clientId}
-              {...client}
-              onClick={() => setLocation(`/clients/${client.clientId}`)}
+              key={client.id || client.clientId}
+              clientId={client.id || client.clientId}
+              name={client.name}
+              email={client.email}
+              phone={client.phone}
+              applianceCount={client.applianceCount || 0}
+              onClick={() => setLocation(`/clients/${client.id || client.clientId}`)}
             />
           ))}
         </div>

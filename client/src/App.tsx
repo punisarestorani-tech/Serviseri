@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { queryClient, apiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,6 +33,23 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    const checkAndGenerateRecurringTasks = async () => {
+      try {
+        await apiRequest("POST", "/api/tasks/recurring/generate");
+        queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      } catch (error) {
+        console.error("Failed to generate recurring tasks:", error);
+      }
+    };
+
+    checkAndGenerateRecurringTasks();
+    
+    const interval = setInterval(checkAndGenerateRecurringTasks, 24 * 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

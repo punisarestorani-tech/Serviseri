@@ -1,0 +1,436 @@
+# Feature Addition: Recurring Tasks and Scheduled Inspections
+
+## Overview
+Add functionality to create both **one-time repair tasks** and **recurring inspection tasks** (weekly, monthly, quarterly, yearly) with automatic scheduling.
+
+---
+
+## Database Schema Changes
+
+### 1. Modify Tasks Table
+Add the following columns to the existing `tasks` table:
+
+```sql
+-- Add to existing tasks table
+ALTER TABLE tasks
+ADD COLUMN task_type TEXT DEFAULT 'one-time' CHECK (task_type IN ('one-time', 'recurring')),
+ADD COLUMN recurrence_pattern TEXT CHECK (recurrence_pattern IN ('none', 'weekly', 'monthly', 'quarterly', 'semi-annual', 'yearly')),
+ADD COLUMN recurrence_interval INTEGER DEFAULT 1,  -- How many weeks/months/years between tasks
+ADD COLUMN parent_task_id UUID REFERENCES tasks(task_id),  -- Links recurring tasks to original
+ADD COLUMN is_auto_generated BOOLEAN DEFAULT false,  -- Was this task auto-created?
+ADD COLUMN next_occurrence_date DATE;  -- When to create the next recurring task
+```
+
+**Explanation:**
+- `task_type`: 'one-time' for repairs, 'recurring' for scheduled inspections
+- `recurrence_pattern`: How often the task repeats
+- `recurrence_interval`: For example: every 2 weeks, every 3 months
+- `parent_task_id`: Links all recurring tasks in a series (so you can see history)
+- `is_auto_generated`: Distinguishes manually created vs auto-created tasks
+- `next_occurrence_date`: When to automatically create the next task
+
+---
+
+## UI Changes
+
+### 1. New "Add Task" Page/Modal (`/tasks/new`)
+
+Create a comprehensive form for task creation with the following structure:
+
+#### Basic Task Information:
+- **Client** (dropdown/search - required)
+- **Appliance** (dropdown filtered by selected client - required)
+- **Assigned Technician** (dropdown of users - required)
+- **Task Description** (textarea - optional, e.g., "Annual HVAC inspection")
+- **Priority** (dropdown: Low, Normal, High, Urgent)
+- **Due Date** (date picker - required)
+
+#### Task Type Selection:
+Radio buttons or toggle:
+- **🔧 One-time Repair** (default)
+- **🔄 Recurring Inspection**
+
+#### Conditional Fields (show only if "Recurring Inspection" is selected):
+
+**Recurrence Pattern:**
+- Dropdown with options:
+  - None (one-time)
+  - Weekly
+  - Monthly
+  - Quarterly (every 3 months)
+  - Semi-Annual (every 6 months)
+  - Yearly
+
+**Recurrence Interval:**
+- Number input (e.g., "Every **2** months")
+- Label changes based on pattern: "Every ___ weeks/months/years"
+
+**Duration:**
+- Radio buttons:
+  - "Until manually stopped"
+  - "Until specific date" (date picker)
+  - "After X occurrences" (number input)
+
+**Visual Preview:**
+- Show next 3-5 scheduled dates based on selected pattern
+- Example: "Next inspections: Dec 1, 2025 → Jan 1, 2026 → Feb 1, 2026"
+
+---
+
+### 2. Task List View Enhancements
+
+#### On Tasks Page (`/tasks`):
+- Add filter dropdown: "All Tasks" | "One-time" | "Recurring"
+- Add visual indicator for recurring tasks:
+  - 🔄 icon next to recurring tasks
+  - Badge showing recurrence pattern (e.g., "Monthly")
+  - Show "Auto-generated" tag if `is_auto_generated = true`
+
+#### Task Card Display:
+```
+┌─────────────────────────────────────────┐
+│ 🔄 HVAC Inspection - Hotel ABC         │
+│ Status: Pending  |  Monthly            │
+│ Client: Hotel ABC                       │
+│ Appliance: Air Conditioning Unit #1     │
+│ Due: Dec 15, 2025                       │
+│ Next: Jan 15, 2026                      │
+│ [View Details]                          │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### 3. Task Details Page Updates (`/tasks/:taskId`)
+
+Add a new section **"Recurrence Information"** (only show for recurring tasks):
+
+```
+Recurrence Information
+─────────────────────────────────────
+Type: Recurring Inspection
+Pattern: Monthly (Every 1 month)
+Next Occurrence: Jan 15, 2026
+Parent Task: [Link to original task if auto-generated]
+Related Tasks: [List of all tasks in this series]
+
+[Edit Recurrence] [Stop Future Tasks] [View History]
+```
+
+**Buttons:**
+- **Edit Recurrence**: Update recurrence pattern (affects future tasks only)
+- **Stop Future Tasks**: Stop creating new recurring tasks (set `next_occurrence_date = null`)
+- **View History**: Show all previous tasks in this recurring series
+
+---
+
+### 4. Appliance Details Page Enhancement
+
+On the Appliance Details page, add a **"Scheduled Inspections"** section:
+
+```
+Scheduled Inspections
+─────────────────────────────────────
+✅ Monthly Filter Check (Active)
+   Next: Dec 1, 2025  |  Assigned to: John Doe
+   [View] [Edit] [Cancel]
+
+✅ Annual Maintenance (Active)
+   Next: Mar 15, 2026  |  Assigned to: Jane Smith
+   [View] [Edit] [Cancel]
+
++ Schedule New Inspection
+```
+
+---
+
+## Backend Logic
+
+### 1. Task Creation Function
+
+When creating a task:
+
+```javascript
+const createTask = async (taskData) => {
+  // 1. Create initial task
+  const { data: newTask, error } = await supabase
+    .from('tasks')
+    .insert({
+      client_id: taskData.client_id,
+      appliance_id: taskData.appliance_id,
+      user_id: taskData.user_id,
+      status: 'pending',
+      task_type: taskData.task_type,
+      recurrence_pattern: taskData.recurrence_pattern,
+      recurrence_interval: taskData.recurrence_interval,
+      next_occurrence_date: calculateNextDate(taskData),
+      created_at: new Date(),
+      is_auto_generated: false
+    })
+    .select()
+    .single();
+
+  return newTask;
+};
+
+// Helper function to calculate next date
+const calculateNextDate = (taskData) => {
+  if (taskData.task_type === 'one-time') return null;
+  
+  const baseDate = new Date(taskData.due_date);
+  const interval = taskData.recurrence_interval || 1;
+  
+  switch (taskData.recurrence_pattern) {
+    case 'weekly':
+      return new Date(baseDate.setDate(baseDate.getDate() + (7 * interval)));
+    case 'monthly':
+      return new Date(baseDate.setMonth(baseDate.getMonth() + interval));
+    case 'quarterly':
+      return new Date(baseDate.setMonth(baseDate.getMonth() + (3 * interval)));
+    case 'semi-annual':
+      return new Date(baseDate.setMonth(baseDate.getMonth() + (6 * interval)));
+    case 'yearly':
+      return new Date(baseDate.setFullYear(baseDate.getFullYear() + interval));
+    default:
+      return null;
+  }
+};
+```
+
+---
+
+### 2. Automatic Task Generation (Two Options)
+
+#### **Option A: Client-Side (React App handles it)**
+Use React effect or a scheduled check when user loads Tasks page:
+
+```javascript
+// In TasksPage.jsx or a background service
+useEffect(() => {
+  const checkAndCreateRecurringTasks = async () => {
+    // Get all tasks where next_occurrence_date <= today and status = 'completed'
+    const { data: tasksToRenew } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('task_type', 'recurring')
+      .lte('next_occurrence_date', new Date().toISOString())
+      .not('next_occurrence_date', 'is', null);
+
+    // For each task, create a new one
+    for (const task of tasksToRenew) {
+      await supabase.from('tasks').insert({
+        client_id: task.client_id,
+        appliance_id: task.appliance_id,
+        user_id: task.user_id,
+        status: 'pending',
+        task_type: 'recurring',
+        recurrence_pattern: task.recurrence_pattern,
+        recurrence_interval: task.recurrence_interval,
+        parent_task_id: task.parent_task_id || task.task_id,
+        is_auto_generated: true,
+        next_occurrence_date: calculateNextDate(task),
+        created_at: new Date()
+      });
+    }
+  };
+
+  checkAndCreateRecurringTasks();
+  
+  // Check every 24 hours
+  const interval = setInterval(checkAndCreateRecurringTasks, 24 * 60 * 60 * 1000);
+  return () => clearInterval(interval);
+}, []);
+```
+
+#### **Option B: Supabase Database Function (More Reliable)**
+Create a Supabase Edge Function or pg_cron job:
+
+```sql
+-- Supabase function to auto-create recurring tasks
+CREATE OR REPLACE FUNCTION auto_create_recurring_tasks()
+RETURNS void AS $$
+DECLARE
+  task_record RECORD;
+  new_due_date DATE;
+BEGIN
+  -- Find all recurring tasks that need to be renewed
+  FOR task_record IN 
+    SELECT * FROM tasks
+    WHERE task_type = 'recurring'
+      AND next_occurrence_date <= CURRENT_DATE
+      AND next_occurrence_date IS NOT NULL
+  LOOP
+    -- Calculate next due date
+    new_due_date := task_record.next_occurrence_date;
+    
+    -- Create new task
+    INSERT INTO tasks (
+      client_id, appliance_id, user_id, status, task_type,
+      recurrence_pattern, recurrence_interval, parent_task_id,
+      is_auto_generated, next_occurrence_date, created_at
+    ) VALUES (
+      task_record.client_id,
+      task_record.appliance_id,
+      task_record.user_id,
+      'pending',
+      'recurring',
+      task_record.recurrence_pattern,
+      task_record.recurrence_interval,
+      COALESCE(task_record.parent_task_id, task_record.task_id),
+      true,
+      new_due_date + 
+        CASE task_record.recurrence_pattern
+          WHEN 'weekly' THEN INTERVAL '1 week' * task_record.recurrence_interval
+          WHEN 'monthly' THEN INTERVAL '1 month' * task_record.recurrence_interval
+          WHEN 'quarterly' THEN INTERVAL '3 months' * task_record.recurrence_interval
+          WHEN 'semi-annual' THEN INTERVAL '6 months' * task_record.recurrence_interval
+          WHEN 'yearly' THEN INTERVAL '1 year' * task_record.recurrence_interval
+        END,
+      NOW()
+    );
+    
+    -- Update original task's next_occurrence_date
+    UPDATE tasks
+    SET next_occurrence_date = new_due_date + 
+      CASE task_record.recurrence_pattern
+        WHEN 'weekly' THEN INTERVAL '1 week' * task_record.recurrence_interval
+        WHEN 'monthly' THEN INTERVAL '1 month' * task_record.recurrence_interval
+        WHEN 'quarterly' THEN INTERVAL '3 months' * task_record.recurrence_interval
+        WHEN 'semi-annual' THEN INTERVAL '6 months' * task_record.recurrence_interval
+        WHEN 'yearly' THEN INTERVAL '1 year' * task_record.recurrence_interval
+      END
+    WHERE task_id = task_record.task_id;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+Then call this function daily using Supabase cron or manually trigger it from React.
+
+---
+
+## n8n Integration (Optional but Recommended)
+
+n8n will handle **reminders and notifications**, not task creation (app does that).
+
+### What n8n Should Do:
+1. **Send reminder emails** 7 days, 3 days, 1 day before recurring inspection due date
+2. **Notify technician** when new recurring task is auto-created
+3. **Alert admin** if a recurring task is overdue
+
+### What App Should Do (without n8n):
+1. **Create recurring tasks** automatically (Option A or B above)
+2. **Display** upcoming recurring tasks
+3. **Allow manual management** (edit, cancel, skip occurrence)
+
+---
+
+## User Flow Examples
+
+### Example 1: Creating a Monthly HVAC Inspection
+1. Admin clicks "Add Task"
+2. Selects:
+   - Client: "Hotel Paradise"
+   - Appliance: "HVAC System - Lobby"
+   - Assigned to: "John Doe"
+   - Task Type: **Recurring Inspection**
+   - Pattern: **Monthly**
+   - First Due Date: Dec 1, 2025
+3. Clicks "Create Task"
+4. System creates task with `next_occurrence_date = Jan 1, 2026`
+5. On Jan 1, 2026, system automatically creates next task with `next_occurrence_date = Feb 1, 2026`
+6. (Optional) n8n sends reminder emails to John 7 days before each due date
+
+### Example 2: One-time Repair
+1. Client calls: "Refrigerator broken"
+2. Admin clicks "Add Task"
+3. Selects:
+   - Client: "Restaurant XYZ"
+   - Appliance: "Refrigerator #2"
+   - Assigned to: "Jane Smith"
+   - Task Type: **One-time Repair**
+   - Due Date: Tomorrow
+4. Clicks "Create Task"
+5. Task created with `task_type = 'one-time'`, `next_occurrence_date = null`
+6. After completion, task is done (no future tasks created)
+
+---
+
+## UI/UX Considerations
+
+### Visual Distinction:
+- **One-time tasks**: Regular blue/gray background
+- **Recurring tasks**: Light green/blue background with 🔄 icon
+- **Auto-generated tasks**: Badge saying "Auto-created"
+
+### Filters and Sorting:
+- Filter by task type (all, one-time, recurring)
+- Sort by due date, creation date, recurrence pattern
+- Group recurring tasks in series (expandable list)
+
+### Notifications:
+- Show badge count of upcoming tasks (next 7 days)
+- Highlight overdue recurring tasks in red
+
+---
+
+## Implementation Priority
+
+### Phase 1 (MVP):
+1. ✅ Add database columns
+2. ✅ Create "Add Task" form with task type selection
+3. ✅ Implement basic recurrence (monthly, yearly)
+4. ✅ Auto-create next task when current one is completed (client-side)
+5. ✅ Display recurring tasks with indicators
+
+### Phase 2 (Enhanced):
+6. ✅ Add all recurrence patterns (weekly, quarterly, etc.)
+7. ✅ Implement "View History" of recurring task series
+8. ✅ Add "Edit Recurrence" and "Stop Future Tasks" buttons
+9. ✅ Show scheduled inspections on Appliance Details page
+
+### Phase 3 (Advanced):
+10. ✅ Supabase database function for auto-task creation
+11. ✅ Preview of next 5 occurrences when creating task
+12. ✅ Skip specific occurrence
+13. ✅ Bulk edit recurring tasks
+
+---
+
+## Testing Checklist
+
+- [ ] Create one-time task → Completes without creating new tasks
+- [ ] Create monthly recurring task → Auto-creates next task on due date
+- [ ] Create yearly recurring task → Correctly calculates next year's date
+- [ ] Edit recurrence pattern → Updates future tasks, not past ones
+- [ ] Stop future tasks → Sets next_occurrence_date to null
+- [ ] View task history → Shows all tasks in recurring series
+- [ ] Filter by task type → Correctly filters one-time vs recurring
+- [ ] Auto-generation runs daily → New tasks appear automatically
+
+---
+
+## Notes
+
+- **Do NOT use n8n for task creation** - the React app should handle this
+- **n8n is optional** and only used for reminders/notifications
+- **Automatic task generation** should happen either:
+  - Client-side (when user loads app) - simpler but less reliable
+  - Server-side (Supabase function + cron) - more reliable, requires setup
+- **Start with monthly and yearly** patterns first, add others later
+- **Parent-child task relationship** allows viewing entire inspection history for an appliance
+
+---
+
+## Success Criteria
+
+✅ User can create both one-time repairs and recurring inspections  
+✅ Recurring tasks automatically generate new tasks on schedule  
+✅ User can view, edit, and stop recurring task series  
+✅ UI clearly distinguishes between task types  
+✅ Appliance details page shows upcoming scheduled inspections  
+✅ Task history shows all past inspections for an appliance  
+
+---
+
+**Implement this feature in the existing Service Management application. Prioritize Phase 1 (MVP) first, ensuring core functionality works before adding advanced features.**
