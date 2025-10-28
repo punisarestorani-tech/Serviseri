@@ -208,25 +208,36 @@ export default function StoragePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredAppliances.map((appliance) => {
                     const client = clients.find(c => c.id === appliance.clientId);
+                    const applianceLabel = [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || 'Appliance';
                     return (
-                      <Card key={appliance.id} className="p-5" data-testid={`card-appliance-${appliance.id}`}>
+                      <Card 
+                        key={appliance.id} 
+                        className="p-5 hover-elevate active-elevate-2 cursor-pointer overflow-visible" 
+                        data-testid={`card-appliance-${appliance.id}`}
+                        onClick={() => setLocation(`/appliances/${appliance.id}`)}
+                      >
                         <div className="mb-3">
-                          <h3 className="font-medium text-lg mb-1">{appliance.name}</h3>
+                          <h3 className="font-medium text-lg mb-1">{applianceLabel}</h3>
                           <p className="text-sm text-primary">{client?.name}</p>
                         </div>
-                        {appliance.model && (
+                        {appliance.maker && (
                           <p className="text-sm text-muted-foreground mb-1">
-                            <span className="font-medium">Model:</span> {appliance.model}
+                            <span className="font-medium">Maker:</span> {appliance.maker}
                           </p>
                         )}
-                        {appliance.serialNumber && (
+                        {appliance.type && (
                           <p className="text-sm text-muted-foreground mb-1">
-                            <span className="font-medium">S/N:</span> {appliance.serialNumber}
+                            <span className="font-medium">Type:</span> {appliance.type}
                           </p>
                         )}
-                        {appliance.location && (
+                        {appliance.serial && (
+                          <p className="text-sm text-muted-foreground mb-1">
+                            <span className="font-medium">S/N:</span> {appliance.serial}
+                          </p>
+                        )}
+                        {appliance.iga && (
                           <p className="text-sm text-muted-foreground">
-                            <span className="font-medium">Location:</span> {appliance.location}
+                            <span className="font-medium">IGA:</span> {appliance.iga}
                           </p>
                         )}
                       </Card>

@@ -2,45 +2,49 @@ import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Calendar, Hash, Upload, Printer } from "lucide-react";
+import { Wrench, Calendar, Hash, Upload, Printer, Package } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { Appliance, Client } from "@shared/schema";
 import { format } from "date-fns";
 
 export default function ApplianceDetailsPage() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/appliances/:id");
+  
+  const { data: appliance, isLoading: isLoadingAppliance } = useQuery<Appliance>({
+    queryKey: ["/api/appliances", params?.id],
+    enabled: !!params?.id,
+  });
 
-  //todo: remove mock functionality
-  const appliance = {
-    applianceId: params?.id || "1",
-    name: "Commercial Freezer Unit",
-    maker: "ThermoKing",
-    serialNumber: "TK-2024-FR-8820",
-    age: 3,
-    lastServiceDate: new Date('2024-01-10'),
-    nextServiceDate: new Date('2024-07-10'),
-    clientId: "1",
-    history: [
-      {
-        reportId: "1",
-        date: new Date('2024-01-10'),
-        description: "Replaced compressor belt, cleaned condenser coils",
-        technicianName: "John Smith",
-      },
-      {
-        reportId: "2",
-        date: new Date('2023-07-15'),
-        description: "Annual maintenance, refrigerant check",
-        technicianName: "Sarah Johnson",
-      },
-      {
-        reportId: "3",
-        date: new Date('2023-01-20'),
-        description: "Repaired door seal, thermostat calibration",
-        technicianName: "Mike Davis",
-      },
-    ],
-  };
+  const { data: client } = useQuery<Client>({
+    queryKey: ["/api/clients", appliance?.clientId],
+    enabled: !!appliance?.clientId,
+  });
+
+  if (isLoadingAppliance) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header username="John Smith" onLogout={() => setLocation('/')} />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12 text-muted-foreground">Loading...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!appliance) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header username="John Smith" onLogout={() => setLocation('/')} />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12 text-muted-foreground">Appliance not found</div>
+        </main>
+      </div>
+    );
+  }
+
+  const applianceLabel = [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || 'Appliance';
 
   const handlePrint = () => {
     window.print();
@@ -57,8 +61,8 @@ export default function ApplianceDetailsPage() {
 
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-bold mb-2">{appliance.name}</h2>
-            <p className="text-muted-foreground">{appliance.maker}</p>
+            <h2 className="text-3xl font-bold mb-2">{applianceLabel}</h2>
+            <p className="text-muted-foreground">{client?.name}</p>
           </div>
           <div className="flex gap-2 print:hidden">
             <Button
@@ -89,58 +93,65 @@ export default function ApplianceDetailsPage() {
             Appliance Information
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Wrench className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Maker:</span>
-              <span data-testid="text-maker">{appliance.maker}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-mono">
-              <Hash className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Serial:</span>
-              <span data-testid="text-serial">{appliance.serialNumber}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Age:</span>
-              <span data-testid="text-age">{appliance.age} years</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Last Service:</span>
-              <span data-testid="text-last-service">
-                {format(appliance.lastServiceDate, "MMM d, yyyy")}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm sm:col-span-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Next Service:</span>
-              <span data-testid="text-next-service">
-                {format(appliance.nextServiceDate, "MMM d, yyyy")}
-              </span>
-            </div>
+            {appliance.maker && (
+              <div className="flex items-center gap-2 text-sm">
+                <Wrench className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Maker:</span>
+                <span data-testid="text-maker">{appliance.maker}</span>
+              </div>
+            )}
+            {appliance.type && (
+              <div className="flex items-center gap-2 text-sm">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Type:</span>
+                <span data-testid="text-type">{appliance.type}</span>
+              </div>
+            )}
+            {appliance.model && (
+              <div className="flex items-center gap-2 text-sm">
+                <Wrench className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Model:</span>
+                <span data-testid="text-model">{appliance.model}</span>
+              </div>
+            )}
+            {appliance.serial && (
+              <div className="flex items-center gap-2 text-sm font-mono">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Serial:</span>
+                <span data-testid="text-serial">{appliance.serial}</span>
+              </div>
+            )}
+            {appliance.iga && (
+              <div className="flex items-center gap-2 text-sm font-mono">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">IGA:</span>
+                <span data-testid="text-iga">{appliance.iga}</span>
+              </div>
+            )}
+            {appliance.lastServiceDate && typeof appliance.lastServiceDate === 'string' && (
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Last Service:</span>
+                <span data-testid="text-last-service">
+                  {format(new Date(appliance.lastServiceDate), "MMM d, yyyy")}
+                </span>
+              </div>
+            )}
+            {appliance.nextServiceDate && typeof appliance.nextServiceDate === 'string' && (
+              <div className="flex items-center gap-2 text-sm sm:col-span-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Next Service:</span>
+                <span data-testid="text-next-service">
+                  {format(new Date(appliance.nextServiceDate), "MMM d, yyyy")}
+                </span>
+              </div>
+            )}
           </div>
         </Card>
 
         <h3 className="text-xl font-semibold mb-4">Service History</h3>
-        <div className="space-y-4">
-          {appliance.history.map((report) => (
-            <Card
-              key={report.reportId}
-              className="p-5 border-l-4 border-l-primary"
-              data-testid={`card-history-${report.reportId}`}
-            >
-              <div className="flex items-start justify-between gap-4 mb-2">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  {format(report.date, "MMMM d, yyyy")}
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  by {report.technicianName}
-                </span>
-              </div>
-              <p className="text-sm">{report.description}</p>
-            </Card>
-          ))}
+        <div className="text-center py-12 text-muted-foreground">
+          No service history available yet
         </div>
       </main>
     </div>
