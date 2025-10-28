@@ -43,9 +43,7 @@ export default function CreateReportPage() {
 
   const createReportMutation = useMutation({
     mutationFn: async (reportData: any) => {
-      const report = await apiRequest("POST", "/api/reports", reportData);
-      await apiRequest("PATCH", `/api/tasks/${params?.id}`, { status: "completed" });
-      return report;
+      return await apiRequest("POST", "/api/reports", reportData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });

@@ -41,6 +41,7 @@ export interface IStorage {
   updateTask(id: string, task: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: string): Promise<void>;
   
+  getAllReports(): Promise<Report[]>;
   getReport(id: string): Promise<Report | undefined>;
   getReportsByTask(taskId: string): Promise<Report[]>;
   createReport(report: InsertReport): Promise<Report>;
@@ -182,6 +183,10 @@ export class DbStorage implements IStorage {
 
   async deleteTask(id: string): Promise<void> {
     await db.delete(tasks).where(eq(tasks.id, id));
+  }
+
+  async getAllReports(): Promise<Report[]> {
+    return await db.select().from(reports);
   }
 
   async getReport(id: string): Promise<Report | undefined> {

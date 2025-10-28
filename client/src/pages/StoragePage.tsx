@@ -7,10 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, FileText, History, Upload, Wrench, Plus, MapPin } from "lucide-react";
+import { Package, FileText, History as HistoryIcon, Upload, Wrench, Plus, MapPin } from "lucide-react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import type { Appliance, Client } from "@shared/schema";
+import type { Appliance, Client, Task, Report } from "@shared/schema";
 import { format } from "date-fns";
 
 export default function StoragePage() {
@@ -25,6 +25,10 @@ export default function StoragePage() {
 
   const { data: clients = [] } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
+  });
+
+  const { data: reportsWithDetails = [], isLoading: isLoadingReports } = useQuery<Array<Report & { clientName: string; applianceName: string; taskDescription: string }>>({
+    queryKey: ["/api/reports/with-details"],
   });
 
   return (
@@ -53,7 +57,7 @@ export default function StoragePage() {
               Documents
             </TabsTrigger>
             <TabsTrigger value="history" data-testid="tab-history" className="gap-2">
-              <History className="h-4 w-4" />
+              <HistoryIcon className="h-4 w-4" />
               History
             </TabsTrigger>
           </TabsList>
@@ -206,30 +210,67 @@ export default function StoragePage() {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            <div className="text-center py-12 text-muted-foreground">
-              No service history available yet. Complete service reports to build history.
-            </div>
-            <div className="space-y-4 hidden">
-              {[].map((report: any) => (
-                <Card
-                  key={report.id}
-                  className="p-5 border-l-4 border-l-primary"
-                  data-testid={`card-report-${report.id}`}
-                >
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                      <h3 className="font-medium text-lg">{report.clientName}</h3>
-                      <p className="text-sm text-muted-foreground">{report.applianceName}</p>
+            {isLoadingReports ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="p-5 border-l-4 border-l-primary">
+                    <div className="animate-pulse">
+                      <div className="h-5 bg-muted rounded w-1/3 mb-2"></div>
+                      <div className="h-4 bg-muted rounded w-1/2 mb-3"></div>
+                      <div className="h-4 bg-muted rounded w-full"></div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{format(report.date, "MMM d, yyyy")}</p>
-                      <p className="text-xs text-muted-foreground">by {report.technicianName}</p>
+                  </Card>
+                ))}
+              </div>
+            ) : reportsWithDetails.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No service history available yet. Complete service reports to build history.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reportsWithDetails.map((report) => (
+                  <Card
+                    key={report.id}
+                    className="p-5 border-l-4 border-l-primary"
+                    data-testid={`card-report-${report.id}`}
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <h3 className="font-medium text-lg" data-testid={`text-client-${report.id}`}>
+                          {report.clientName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground" data-testid={`text-appliance-${report.id}`}>
+                          {report.applianceName}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Task: {report.taskDescription}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">
+                          {report.createdAt ? format(new Date(report.createdAt), "MMM d, yyyy") : 'N/A'}
+                        </p>
+                        {report.workDuration && (
+                          <p className="text-xs text-muted-foreground">
+                            Duration: {report.workDuration} min
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-sm">{report.description}</p>
-                </Card>
-              ))}
-            </div>
+                    <p className="text-sm" data-testid={`text-description-${report.id}`}>
+                      {report.description}
+                    </p>
+                    {report.sparePartsUsed && (
+                      <div className="mt-2 pt-2 border-t">
+                        <p className="text-xs text-muted-foreground">
+                          Spare parts used: {report.sparePartsUsed}
+                        </p>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>

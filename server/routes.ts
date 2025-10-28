@@ -226,6 +226,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reports
+  app.get("/api/reports", async (req, res) => {
+    const reports = await storage.getAllReports();
+    res.json(reports);
+  });
+
+  app.get("/api/reports/with-details", async (req, res) => {
+    const reports = await storage.getAllReports();
+    const tasks = await storage.getAllTasks();
+    const clients = await storage.getAllClients();
+    const appliances = await storage.getAllAppliances();
+    
+    const reportsWithDetails = reports.map(report => {
+      const task = tasks.find(t => t.id === report.taskId);
+      const client = task ? clients.find(c => c.id === task.clientId) : null;
+      const appliance = task?.applianceId ? appliances.find(a => a.id === task.applianceId) : null;
+      
+      const applianceName = appliance 
+        ? [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') 
+        : 'Unknown appliance';
+      
+      return {
+        ...report,
+        clientName: client?.name || 'Unknown client',
+        applianceName,
+        taskDescription: task?.description || 'N/A',
+      };
+    });
+    
+    res.json(reportsWithDetails);
+  });
+
   app.get("/api/reports/:id", async (req, res) => {
     const report = await storage.getReport(req.params.id);
     if (!report) {
@@ -243,6 +274,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertReportSchema.parse(req.body);
       const report = await storage.createReport(validatedData);
+      
+      if (validatedData.taskId) {
+        await storage.updateTask(validatedData.taskId, { status: "completed" });
+      }
+      
       res.status(201).json(report);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
