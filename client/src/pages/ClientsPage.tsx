@@ -11,9 +11,11 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n";
 import type { Client, Appliance } from "@shared/schema";
 
 export default function ClientsPage() {
+  const t = useTranslation();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
@@ -38,8 +40,7 @@ export default function ClientsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
       toast({
-        title: "Success",
-        description: "Client created successfully",
+        description: t.clients.createSuccess,
       });
       setNewClientName("");
       setNewClientEmail("");
@@ -49,8 +50,7 @@ export default function ClientsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create client",
+        description: error.message || t.clients.createError,
         variant: "destructive",
       });
     },
@@ -80,29 +80,29 @@ export default function ClientsPage() {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <BackButton to="/dashboard" label="Back to Dashboard" />
+          <BackButton to="/dashboard" label={`${t.common.back} ${t.nav.dashboard}`} />
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold">Clients</h2>
+          <h2 className="text-3xl font-bold">{t.clients.title}</h2>
           <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-add-client">
-                Add Client
+                {t.clients.addClient}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create New Client</DialogTitle>
+                <DialogTitle>{t.clients.addClient}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="client-name">
-                    Client Name <span className="text-destructive">*</span>
+                    {t.clients.name} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="client-name"
-                    placeholder="Enter client name..."
+                    placeholder={t.clients.namePlaceholder}
                     value={newClientName}
                     onChange={(e) => setNewClientName(e.target.value)}
                     data-testid="input-client-name"
@@ -110,12 +110,12 @@ export default function ClientsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="client-email">
-                    Email <span className="text-destructive">*</span>
+                    {t.clients.email} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="client-email"
                     type="email"
-                    placeholder="client@example.com"
+                    placeholder={t.clients.emailPlaceholder}
                     value={newClientEmail}
                     onChange={(e) => setNewClientEmail(e.target.value)}
                     data-testid="input-client-email"
@@ -123,12 +123,12 @@ export default function ClientsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="client-phone">
-                    Phone <span className="text-destructive">*</span>
+                    {t.clients.phone} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="client-phone"
                     type="tel"
-                    placeholder="+1 555-0123"
+                    placeholder={t.clients.phonePlaceholder}
                     value={newClientPhone}
                     onChange={(e) => setNewClientPhone(e.target.value)}
                     data-testid="input-client-phone"
@@ -136,11 +136,11 @@ export default function ClientsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="client-address">
-                    Address
+                    {t.clients.address}
                   </Label>
                   <Input
                     id="client-address"
-                    placeholder="Street address, city, state"
+                    placeholder={t.clients.addressPlaceholder}
                     value={newClientAddress}
                     onChange={(e) => setNewClientAddress(e.target.value)}
                     data-testid="input-client-address"
@@ -153,7 +153,7 @@ export default function ClientsPage() {
                     className="flex-1"
                     data-testid="button-cancel-client"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                   <Button
                     onClick={handleAddClient}
@@ -161,7 +161,7 @@ export default function ClientsPage() {
                     className="flex-1"
                     data-testid="button-create-client"
                   >
-                    {createClientMutation.isPending ? "Creating..." : "Create Client"}
+                    {createClientMutation.isPending ? t.clients.creating : t.clients.addClient}
                   </Button>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function ClientsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search clients..."
+              placeholder={t.clients.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -199,7 +199,7 @@ export default function ClientsPage() {
 
         {filteredClients.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            No clients found matching your search
+            {t.clients.noClients}
           </div>
         )}
       </main>

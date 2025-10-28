@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertApplianceSchema, type InsertAppliance } from "@shared/schema";
@@ -38,6 +39,7 @@ export default function AddApplianceDialog({
   clientId,
   onSuccess,
 }: AddApplianceDialogProps) {
+  const t = useTranslation();
   const { toast } = useToast();
 
   const form = useForm<ApplianceFormValues>({
@@ -75,8 +77,7 @@ export default function AddApplianceDialog({
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/appliances"] });
       toast({
-        title: "Success",
-        description: "Appliance created successfully",
+        description: t.appliances.createSuccess,
       });
       form.reset();
       onOpenChange(false);
@@ -86,8 +87,7 @@ export default function AddApplianceDialog({
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create appliance",
+        description: error.message || t.appliances.createError,
         variant: "destructive",
       });
     },
@@ -96,8 +96,7 @@ export default function AddApplianceDialog({
   const handleSubmit = (values: ApplianceFormValues) => {
     if (!clientId) {
       toast({
-        title: "Error",
-        description: "Please select a client first",
+        description: t.appliances.selectClientFirst,
         variant: "destructive",
       });
       return;
@@ -122,9 +121,9 @@ export default function AddApplianceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Add New Appliance</DialogTitle>
+          <DialogTitle>{t.appliances.addAppliance}</DialogTitle>
           <DialogDescription>
-            Create a new appliance for the selected client
+            {t.appliances.addApplianceDescription}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto flex-1 -mx-6 px-6">
@@ -135,10 +134,10 @@ export default function AddApplianceDialog({
               name="maker"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Maker</FormLabel>
+                  <FormLabel>{t.appliances.maker}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Samsung, LG, Siemens"
+                      placeholder={t.appliances.makerPlaceholder}
                       data-testid="input-appliance-maker"
                       {...field}
                     />
@@ -153,10 +152,10 @@ export default function AddApplianceDialog({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type</FormLabel>
+                  <FormLabel>{t.appliances.type}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Freezer, Oven, Dishwasher"
+                      placeholder={t.appliances.typePlaceholder}
                       data-testid="input-appliance-type"
                       {...field}
                     />
@@ -171,10 +170,10 @@ export default function AddApplianceDialog({
               name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Model</FormLabel>
+                  <FormLabel>{t.appliances.model}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Model CFU-2000"
+                      placeholder={t.appliances.modelPlaceholder}
                       data-testid="input-appliance-model"
                       {...field}
                     />
@@ -189,10 +188,10 @@ export default function AddApplianceDialog({
               name="serial"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Serial Number</FormLabel>
+                  <FormLabel>{t.appliances.serial}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., SN-12345"
+                      placeholder={t.appliances.serialPlaceholder}
                       data-testid="input-appliance-serial"
                       {...field}
                     />
@@ -203,17 +202,17 @@ export default function AddApplianceDialog({
             />
 
             <div className="space-y-2 p-4 bg-muted rounded-md">
-              <h4 className="font-medium text-sm">Location Details</h4>
+              <h4 className="font-medium text-sm">{t.appliances.locationDetails}</h4>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Grad (City)</FormLabel>
+                      <FormLabel>{t.appliances.city}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g., Beograd"
+                          placeholder={t.appliances.cityPlaceholder}
                           data-testid="input-appliance-city"
                           {...field}
                         />
@@ -228,10 +227,10 @@ export default function AddApplianceDialog({
                   name="building"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Objekat (Building)</FormLabel>
+                      <FormLabel>{t.appliances.building}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g., Main Kitchen"
+                          placeholder={t.appliances.buildingPlaceholder}
                           data-testid="input-appliance-building"
                           {...field}
                         />
@@ -246,10 +245,10 @@ export default function AddApplianceDialog({
                   name="room"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
-                      <FormLabel>Prostorija (Room)</FormLabel>
+                      <FormLabel>{t.appliances.room}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g., Cold Storage 2"
+                          placeholder={t.appliances.roomPlaceholder}
                           data-testid="input-appliance-room"
                           {...field}
                         />
@@ -266,7 +265,7 @@ export default function AddApplianceDialog({
               name="installDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Install Date</FormLabel>
+                  <FormLabel>{t.appliances.installDate}</FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -290,7 +289,7 @@ export default function AddApplianceDialog({
                 className="flex-1"
                 data-testid="button-cancel-appliance"
               >
-                Cancel
+                {t.common.cancel}
               </Button>
               <Button
                 type="submit"
@@ -298,7 +297,7 @@ export default function AddApplianceDialog({
                 className="flex-1"
                 data-testid="button-create-appliance"
               >
-                {createApplianceMutation.isPending ? "Creating..." : "Create Appliance"}
+                {createApplianceMutation.isPending ? t.appliances.creating : t.appliances.addAppliance}
               </Button>
             </div>
           </form>

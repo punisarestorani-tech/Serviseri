@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Package, FileText, History as HistoryIcon, Upload, Wrench, Plus, MapPin, Search, Repeat } from "lucide-react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
 import type { Appliance, Client, Task } from "@shared/schema";
 import { format } from "date-fns";
 
 export default function StoragePage() {
+  const t = useTranslation();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("parts");
   const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
@@ -41,11 +43,11 @@ export default function StoragePage() {
       
       const applianceName = appliance 
         ? [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') 
-        : 'No appliance';
+        : t.appliances.noApplianceAssigned;
       
       return {
         ...task,
-        clientName: client?.name || 'Unknown client',
+        clientName: client?.name || t.clients.unknownClient,
         applianceName,
       };
     });
@@ -61,34 +63,34 @@ export default function StoragePage() {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <BackButton to="/dashboard" label="Back to Dashboard" />
+          <BackButton to="/dashboard" label={`${t.common.back} ${t.nav.dashboard}`} />
         </div>
 
-        <h2 className="text-3xl font-bold mb-6">Storage</h2>
+        <h2 className="text-3xl font-bold mb-6">{t.storage.title}</h2>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="parts" data-testid="tab-parts" className="gap-2">
               <Package className="h-4 w-4" />
-              Spare Parts
+              {t.storage.spareParts}
             </TabsTrigger>
             <TabsTrigger value="appliances" data-testid="tab-appliances" className="gap-2">
               <Wrench className="h-4 w-4" />
-              Appliances
+              {t.appliances.title}
             </TabsTrigger>
             <TabsTrigger value="documents" data-testid="tab-documents" className="gap-2">
               <FileText className="h-4 w-4" />
-              Documents
+              {t.storage.documents}
             </TabsTrigger>
             <TabsTrigger value="history" data-testid="tab-history" className="gap-2">
               <HistoryIcon className="h-4 w-4" />
-              History
+              {t.storage.history}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="parts" className="space-y-4">
             <div className="text-center py-12 text-muted-foreground">
-              No spare parts in inventory. Add spare parts to track inventory.
+              {t.storage.noSpareParts}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
               {[].map((part: any) => (
@@ -118,10 +120,10 @@ export default function StoragePage() {
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <Select value={selectedClientId} onValueChange={setSelectedClientId}>
                 <SelectTrigger className="w-full sm:w-64" data-testid="select-storage-client-filter">
-                  <SelectValue placeholder="Filter by client" />
+                  <SelectValue placeholder={t.storage.filterByClient} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Clients</SelectItem>
+                  <SelectItem value="all">{t.storage.allClients}</SelectItem>
                   {clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                   ))}
@@ -134,7 +136,7 @@ export default function StoragePage() {
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
-                Add New Appliance
+                {t.appliances.addAppliance}
               </Button>
             </div>
 
@@ -147,10 +149,10 @@ export default function StoragePage() {
                 return (
                   <div className="text-center py-12 text-muted-foreground">
                     {appliances.length === 0
-                      ? "No appliances found. Select a client and add one to get started."
+                      ? t.storage.noAppliancesSelectClient
                       : selectedClientId && selectedClientId !== "all"
-                        ? "No appliances found for the selected client."
-                        : "No appliances found."}
+                        ? t.storage.noAppliancesForClient
+                        : t.appliances.noAppliances}
                   </div>
                 );
               }
@@ -159,7 +161,7 @@ export default function StoragePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredAppliances.map((appliance) => {
                     const client = clients.find(c => c.id === appliance.clientId);
-                    const applianceLabel = [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || 'Appliance';
+                    const applianceLabel = [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || t.appliances.title;
                     const locationParts = [appliance.city, appliance.building, appliance.room].filter(Boolean);
                     const locationLabel = locationParts.length > 0 ? locationParts.join(' • ') : null;
                     
@@ -182,7 +184,7 @@ export default function StoragePage() {
                         </div>
                         {appliance.serial && (
                           <p className="text-sm text-muted-foreground">
-                            <span className="font-medium">S/N:</span> {appliance.serial}
+                            <span className="font-medium">{t.appliances.serial}:</span> {appliance.serial}
                           </p>
                         )}
                       </Card>
@@ -201,12 +203,12 @@ export default function StoragePage() {
                 className="gap-2"
               >
                 <Upload className="h-4 w-4" />
-                Upload Document
+                {t.storage.uploadDocument}
               </Button>
             </div>
 
             <div className="text-center py-12 text-muted-foreground">
-              No documents available yet. Upload documents to get started.
+              {t.storage.noDocuments}
             </div>
             <div className="space-y-3 hidden">
               {[].map((doc: any) => (
@@ -222,7 +224,7 @@ export default function StoragePage() {
                       <div>
                         <h3 className="font-medium">{doc.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Uploaded {format(doc.uploadedDate, "MMM d, yyyy")}
+                          {t.storage.uploaded} {format(doc.uploadedDate, "MMM d, yyyy")}
                         </p>
                       </div>
                     </div>
@@ -238,7 +240,7 @@ export default function StoragePage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search by client name..."
+                placeholder={t.storage.searchByClient}
                 value={historySearchQuery}
                 onChange={(e) => setHistorySearchQuery(e.target.value)}
                 className="pl-9"
@@ -261,8 +263,8 @@ export default function StoragePage() {
             ) : filteredCompletedTasks.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 {historySearchQuery 
-                  ? "No completed tasks found matching your search" 
-                  : "No completed tasks yet. Complete tasks to build history."}
+                  ? t.storage.noCompletedTasksSearch
+                  : t.storage.noCompletedTasks}
               </div>
             ) : (
               <div className="space-y-4">
@@ -283,7 +285,7 @@ export default function StoragePage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <Badge variant="secondary" className="mb-1">Completed</Badge>
+                        <Badge variant="secondary" className="mb-1">{t.tasks.statuses.completed}</Badge>
                         {task.dueDate && (
                           <p className="text-sm font-medium">
                             {format(new Date(task.dueDate), "MMM d, yyyy")}
@@ -298,7 +300,7 @@ export default function StoragePage() {
                       <div className="mt-2 pt-2 border-t">
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Repeat className="h-3 w-3" />
-                          Recurring task
+                          {t.tasks.types.recurring}
                         </p>
                       </div>
                     )}

@@ -16,11 +16,13 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n";
 import type { Client, Appliance, User, Task } from "@shared/schema";
 import { generateUpcomingDates, getRecurrencePatternLabel, type RecurrencePattern } from "@/lib/recurringUtils";
 import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
 
 export default function TasksPage() {
+  const t = useTranslation();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [taskTypeFilter, setTaskTypeFilter] = useState<string>("all");
@@ -67,16 +69,14 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
-        title: "Success",
-        description: "Task created successfully",
+        description: t.tasks.createSuccess,
       });
       resetForm();
       setIsAddTaskOpen(false);
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create task",
+        description: error.message || t.tasks.createError,
         variant: "destructive",
       });
     },
@@ -162,37 +162,37 @@ export default function TasksPage() {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <BackButton to="/dashboard" label="Back to Dashboard" />
+          <BackButton to="/dashboard" label={`${t.common.back} ${t.nav.dashboard}`} />
         </div>
 
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold">Tasks</h2>
+          <h2 className="text-3xl font-bold">{t.tasks.title}</h2>
           <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-add-task">
-                Add Task
+                {t.tasks.addTask}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
+                <DialogTitle>{t.tasks.addTask}</DialogTitle>
                 <DialogDescription>
-                  Create a one-time repair task or set up recurring inspections
+                  {t.tasks.addTaskDescription}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Task Type</Label>
+                  <Label>{t.tasks.taskType}</Label>
                   <RadioGroup value={taskType} onValueChange={(value: any) => setTaskType(value)} className="flex gap-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="one-time" id="one-time" data-testid="radio-one-time" />
-                      <Label htmlFor="one-time" className="font-normal cursor-pointer">One-time Repair</Label>
+                      <Label htmlFor="one-time" className="font-normal cursor-pointer">{t.tasks.types['one-time']}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="recurring" id="recurring" data-testid="radio-recurring" />
                       <Label htmlFor="recurring" className="font-normal cursor-pointer flex items-center gap-1">
                         <Repeat className="w-4 h-4" />
-                        Recurring Inspection
+                        {t.tasks.types.recurring}
                       </Label>
                     </div>
                   </RadioGroup>
@@ -201,7 +201,7 @@ export default function TasksPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="task-client">
-                      Client <span className="text-destructive">*</span>
+                      {t.clients.title} <span className="text-destructive">*</span>
                     </Label>
                     <Select value={clientId} onValueChange={(value) => {
                       if (value === "add-new") {
@@ -211,7 +211,7 @@ export default function TasksPage() {
                       }
                     }}>
                       <SelectTrigger id="task-client" data-testid="select-task-client">
-                        <SelectValue placeholder="Select client" />
+                        <SelectValue placeholder={t.tasks.selectClient} />
                       </SelectTrigger>
                       <SelectContent>
                         {clients.map(client => (
@@ -220,7 +220,7 @@ export default function TasksPage() {
                         <SelectItem value="add-new" className="text-primary font-medium">
                           <div className="flex items-center gap-2">
                             <Plus className="w-4 h-4" />
-                            Add new client
+                            {t.tasks.addNewClient}
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -228,7 +228,7 @@ export default function TasksPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="task-appliance">Appliance</Label>
+                    <Label htmlFor="task-appliance">{t.appliances.title}</Label>
                     <Select value={applianceId} onValueChange={(value) => {
                       if (value === "add-new") {
                         setIsAddApplianceOpen(true);
@@ -237,19 +237,19 @@ export default function TasksPage() {
                       }
                     }} disabled={!clientId}>
                       <SelectTrigger id="task-appliance" data-testid="select-task-appliance">
-                        <SelectValue placeholder={clientId ? "Select appliance" : "Select client first"} />
+                        <SelectValue placeholder={clientId ? t.tasks.selectAppliance : t.tasks.selectClientFirst} />
                       </SelectTrigger>
                       <SelectContent>
                         {filteredAppliances.map(appliance => (
                           <SelectItem key={appliance.id} value={appliance.id}>
-                            {[appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || `Appliance ${appliance.id.slice(0, 8)}`}
+                            {[appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || `${t.appliances.title} ${appliance.id.slice(0, 8)}`}
                           </SelectItem>
                         ))}
                         {clientId && (
                           <SelectItem value="add-new" className="text-primary font-medium">
                             <div className="flex items-center gap-2">
                               <Plus className="w-4 h-4" />
-                              Add new appliance
+                              {t.tasks.addNewAppliance}
                             </div>
                           </SelectItem>
                         )}
@@ -260,11 +260,11 @@ export default function TasksPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="task-technician">
-                    Assign to Technician
+                    {t.tasks.assignToTechnician}
                   </Label>
                   <Select value={userId} onValueChange={setUserId}>
                     <SelectTrigger id="task-technician" data-testid="select-task-technician">
-                      <SelectValue placeholder="Select technician" />
+                      <SelectValue placeholder={t.tasks.selectTechnician} />
                     </SelectTrigger>
                     <SelectContent>
                       {users.map(user => (
@@ -278,11 +278,11 @@ export default function TasksPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="task-description">
-                    Description <span className="text-destructive">*</span>
+                    {t.tasks.description} <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="task-description"
-                    placeholder="Enter task description..."
+                    placeholder={t.tasks.descriptionPlaceholder}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     data-testid="input-task-description"
@@ -292,23 +292,23 @@ export default function TasksPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="task-priority">Priority</Label>
+                    <Label htmlFor="task-priority">{t.tasks.priority}</Label>
                     <Select value={priority} onValueChange={setPriority}>
                       <SelectTrigger id="task-priority" data-testid="select-task-priority">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="low">{t.tasks.priorities.low}</SelectItem>
+                        <SelectItem value="normal">{t.tasks.priorities.normal}</SelectItem>
+                        <SelectItem value="high">{t.tasks.priorities.high}</SelectItem>
+                        <SelectItem value="urgent">{t.tasks.priorities.urgent}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="task-due-date">
-                      Due Date <span className="text-destructive">*</span>
+                      {t.tasks.dueDate} <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="task-due-date"
@@ -322,31 +322,34 @@ export default function TasksPage() {
 
                 {taskType === "recurring" && (
                   <div className="space-y-4 p-4 bg-muted rounded-md">
-                    <h4 className="font-medium">Recurrence Settings</h4>
+                    <h4 className="font-medium">{t.tasks.recurrenceSettings}</h4>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="recurrence-pattern">Pattern</Label>
+                        <Label htmlFor="recurrence-pattern">{t.tasks.pattern}</Label>
                         <Select value={recurrencePattern} onValueChange={(value: any) => setRecurrencePattern(value)}>
                           <SelectTrigger id="recurrence-pattern" data-testid="select-recurrence-pattern">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                            <SelectItem value="quarterly">Quarterly (3 months)</SelectItem>
-                            <SelectItem value="semi-annual">Semi-Annual (6 months)</SelectItem>
-                            <SelectItem value="yearly">Yearly</SelectItem>
+                            <SelectItem value="weekly">{t.tasks.recurrencePatterns.weekly}</SelectItem>
+                            <SelectItem value="monthly">{t.tasks.recurrencePatterns.monthly}</SelectItem>
+                            <SelectItem value="quarterly">{t.tasks.recurrencePatterns.quarterly}</SelectItem>
+                            <SelectItem value="semi-annual">{t.tasks.recurrencePatterns['semi-annual']}</SelectItem>
+                            <SelectItem value="yearly">{t.tasks.recurrencePatterns.yearly}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="recurrence-interval">
-                          Every {recurrencePattern === "weekly" ? "weeks" : 
-                                recurrencePattern === "monthly" ? "months" : 
-                                recurrencePattern === "quarterly" ? "quarters" :
-                                recurrencePattern === "semi-annual" ? "6 months" : "years"}
+                          {t.tasks.every} {
+                            recurrencePattern === "weekly" ? t.tasks.intervalUnits.weeks : 
+                            recurrencePattern === "monthly" ? t.tasks.intervalUnits.months : 
+                            recurrencePattern === "quarterly" ? t.tasks.intervalUnits.quarters :
+                            recurrencePattern === "semi-annual" ? t.tasks.intervalUnits.halfYears : 
+                            t.tasks.intervalUnits.years
+                          }
                         </Label>
                         <Input
                           id="recurrence-interval"
@@ -361,7 +364,7 @@ export default function TasksPage() {
 
                     {upcomingDates.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-sm text-muted-foreground">Next scheduled dates:</Label>
+                        <Label className="text-sm text-muted-foreground">{t.tasks.nextScheduledDates}</Label>
                         <div className="text-sm space-y-1">
                           {upcomingDates.slice(0, 3).map((date, i) => (
                             <div key={i} className="text-muted-foreground">
@@ -384,7 +387,7 @@ export default function TasksPage() {
                     className="flex-1"
                     data-testid="button-cancel-task"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </Button>
                   <Button
                     onClick={handleAddTask}
@@ -392,7 +395,7 @@ export default function TasksPage() {
                     className="flex-1"
                     data-testid="button-create-task"
                   >
-                    {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+                    {createTaskMutation.isPending ? t.tasks.creating : t.tasks.addTask}
                   </Button>
                 </div>
               </div>
@@ -406,7 +409,7 @@ export default function TasksPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search by client name..."
+                placeholder={t.tasks.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -415,12 +418,12 @@ export default function TasksPage() {
             </div>
             <Select value={taskTypeFilter} onValueChange={setTaskTypeFilter}>
               <SelectTrigger className="w-full sm:w-48" data-testid="select-type-filter">
-                <SelectValue placeholder="Filter by type" />
+                <SelectValue placeholder={t.tasks.filterByType} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="one-time">One-time</SelectItem>
-                <SelectItem value="recurring">Recurring</SelectItem>
+                <SelectItem value="all">{t.tasks.allTypes}</SelectItem>
+                <SelectItem value="one-time">{t.tasks.types['one-time']}</SelectItem>
+                <SelectItem value="recurring">{t.tasks.types.recurring}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -433,7 +436,7 @@ export default function TasksPage() {
               taskId={task.id || task.taskId}
               description={task.description}
               status={task.status}
-              clientName={task.clientName || "Client"}
+              clientName={task.clientName || t.clients.title}
               createdAt={task.dueDate ? new Date(task.dueDate) : task.createdAt}
               taskType={task.taskType || "one-time"}
               recurrencePattern={task.recurrencePattern || "none"}
@@ -446,7 +449,7 @@ export default function TasksPage() {
 
         {filteredTasks.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            No tasks found matching your criteria
+            {t.tasks.noTasks}
           </div>
         )}
       </main>

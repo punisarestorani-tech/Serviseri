@@ -13,6 +13,7 @@ import { useLocation, useRoute } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n";
 
 interface SparePartUsed {
   sparePartId: string;
@@ -20,6 +21,7 @@ interface SparePartUsed {
 }
 
 export default function CreateReportPage() {
+  const t = useTranslation();
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/tasks/:id/report");
   const [description, setDescription] = useState("");
@@ -49,15 +51,13 @@ export default function CreateReportPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({
-        title: "Success",
-        description: "Report submitted and task marked as completed",
+        description: t.reports.submitSuccess,
       });
       setLocation('/tasks');
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit report",
+        description: error.message || t.reports.submitError,
         variant: "destructive",
       });
     },
@@ -83,21 +83,21 @@ export default function CreateReportPage() {
       
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <BackButton to={`/tasks/${params?.id}`} label="Back to Task" />
+          <BackButton to={`/tasks/${params?.id}`} label={`${t.common.back} ${t.tasks.taskDetails}`} />
         </div>
 
-        <h2 className="text-3xl font-bold mb-6">Create Service Report</h2>
+        <h2 className="text-3xl font-bold mb-6">{t.reports.createReport}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-6">
             <div className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="description">
-                  Work Description <span className="text-destructive">*</span>
+                  {t.reports.workDescription} <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   id="description"
-                  placeholder="Describe the work performed..."
+                  placeholder={t.reports.workDescriptionPlaceholder}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
@@ -108,13 +108,13 @@ export default function CreateReportPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="work-duration">
-                  Work Duration (minutes) <span className="text-destructive">*</span>
+                  {t.reports.workDuration} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="work-duration"
                   type="number"
                   min="1"
-                  placeholder="e.g., 120"
+                  placeholder={t.reports.workDurationPlaceholder}
                   value={workDuration}
                   onChange={(e) => setWorkDuration(e.target.value)}
                   required
@@ -123,7 +123,7 @@ export default function CreateReportPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Photos</Label>
+                <Label>{t.reports.photos}</Label>
                 <FileUpload
                   onChange={(files) => console.log('Photos uploaded:', files)}
                 />
@@ -133,7 +133,7 @@ export default function CreateReportPage() {
 
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <Label className="text-base">Spare Parts Used</Label>
+              <Label className="text-base">{t.reports.sparePartsUsed}</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -143,7 +143,7 @@ export default function CreateReportPage() {
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
-                Add Part
+                {t.reports.addPart}
               </Button>
             </div>
 
@@ -155,16 +155,16 @@ export default function CreateReportPage() {
                     onValueChange={(value) => updateSparePart(index, 'sparePartId', value)}
                   >
                     <SelectTrigger className="flex-1" data-testid={`select-spare-part-${index}`}>
-                      <SelectValue placeholder="Select spare part" />
+                      <SelectValue placeholder={t.reports.selectSparePart} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="temp">No spare parts available</SelectItem>
+                      <SelectItem value="temp">{t.reports.noSparePartsAvailable}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Input
                     type="number"
                     min="1"
-                    placeholder="Qty"
+                    placeholder={t.reports.quantity}
                     value={part.quantity}
                     onChange={(e) => updateSparePart(index, 'quantity', parseInt(e.target.value) || 1)}
                     className="w-20"
@@ -184,7 +184,7 @@ export default function CreateReportPage() {
 
               {partsUsed.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No spare parts added yet
+                  {t.reports.noSparePartsAdded}
                 </p>
               )}
             </div>
@@ -197,7 +197,7 @@ export default function CreateReportPage() {
               onClick={() => setLocation(`/tasks/${params?.id}`)}
               data-testid="button-cancel"
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
@@ -205,7 +205,7 @@ export default function CreateReportPage() {
               className="flex-1"
               data-testid="button-submit-report"
             >
-              {createReportMutation.isPending ? "Submitting..." : "Submit Report"}
+              {createReportMutation.isPending ? t.reports.submitting : t.reports.submitReport}
             </Button>
           </div>
         </form>

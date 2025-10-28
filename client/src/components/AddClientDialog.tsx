@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/i18n";
 
 interface AddClientDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ export default function AddClientDialog({
   onOpenChange,
   onSuccess,
 }: AddClientDialogProps) {
+  const t = useTranslation();
   const { toast } = useToast();
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -41,8 +43,7 @@ export default function AddClientDialog({
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
       toast({
-        title: "Success",
-        description: "Client created successfully",
+        description: t.clients.createSuccess,
       });
       onOpenChange(false);
       if (onSuccess) {
@@ -51,8 +52,7 @@ export default function AddClientDialog({
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create client",
+        description: error.message || t.clients.createError,
         variant: "destructive",
       });
     },
@@ -61,8 +61,7 @@ export default function AddClientDialog({
   const handleSubmit = () => {
     if (!clientName || !clientEmail || !clientPhone) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
+        description: t.clients.fillRequired,
         variant: "destructive",
       });
       return;
@@ -82,19 +81,19 @@ export default function AddClientDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Client</DialogTitle>
+          <DialogTitle>{t.clients.addClient}</DialogTitle>
           <DialogDescription>
-            Add a new client to the system
+            {t.clients.addClientDescription}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="client-name">
-              Client Name <span className="text-destructive">*</span>
+              {t.clients.name} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="client-name"
-              placeholder="Enter client name..."
+              placeholder={t.clients.namePlaceholder}
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               data-testid="input-client-name"
@@ -103,12 +102,12 @@ export default function AddClientDialog({
 
           <div className="space-y-2">
             <Label htmlFor="client-email">
-              Email <span className="text-destructive">*</span>
+              {t.clients.email} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="client-email"
               type="email"
-              placeholder="client@example.com"
+              placeholder={t.clients.emailPlaceholder}
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
               data-testid="input-client-email"
@@ -117,11 +116,11 @@ export default function AddClientDialog({
 
           <div className="space-y-2">
             <Label htmlFor="client-phone">
-              Phone <span className="text-destructive">*</span>
+              {t.clients.phone} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="client-phone"
-              placeholder="e.g., +382 123 456"
+              placeholder={t.clients.phonePlaceholder}
               value={clientPhone}
               onChange={(e) => setClientPhone(e.target.value)}
               data-testid="input-client-phone"
@@ -129,10 +128,10 @@ export default function AddClientDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client-address">Address</Label>
+            <Label htmlFor="client-address">{t.clients.address}</Label>
             <Input
               id="client-address"
-              placeholder="Street address, city, state"
+              placeholder={t.clients.addressPlaceholder}
               value={clientAddress}
               onChange={(e) => setClientAddress(e.target.value)}
               data-testid="input-client-address"
@@ -147,7 +146,7 @@ export default function AddClientDialog({
               className="flex-1"
               data-testid="button-cancel-client"
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               onClick={handleSubmit}
@@ -155,7 +154,7 @@ export default function AddClientDialog({
               className="flex-1"
               data-testid="button-create-client"
             >
-              {createClientMutation.isPending ? "Creating..." : "Create Client"}
+              {createClientMutation.isPending ? t.clients.creating : t.clients.addClient}
             </Button>
           </div>
         </div>

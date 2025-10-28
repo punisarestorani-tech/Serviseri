@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, Wrench } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 interface ClientCardProps {
   clientId: string;
@@ -18,6 +19,7 @@ export default function ClientCard({
   applianceCount,
   onClick,
 }: ClientCardProps) {
+  const t = useTranslation();
   return (
     <Card
       className="p-5 hover-elevate active-elevate-2 cursor-pointer overflow-visible"
@@ -44,7 +46,7 @@ export default function ClientCard({
       <div className="flex items-center gap-2 text-sm font-medium pt-2 border-t">
         <Wrench className="h-4 w-4 text-primary" />
         <span data-testid={`text-appliance-count-${clientId}`}>
-          {applianceCount} {applianceCount === 1 ? "appliance" : "appliances"}
+          {applianceCount} {applianceCount === 1 ? t.appliances.applianceSingular : t.appliances.appliancePlural}
         </span>
       </div>
     </Card>

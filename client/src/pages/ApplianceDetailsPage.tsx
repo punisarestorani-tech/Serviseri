@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Wrench, Calendar, Hash, Upload, Printer, Package } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
 import type { Appliance, Client } from "@shared/schema";
 import { format } from "date-fns";
 
 export default function ApplianceDetailsPage() {
+  const t = useTranslation();
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/appliances/:id");
   
@@ -27,7 +29,7 @@ export default function ApplianceDetailsPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12 text-muted-foreground">Loading...</div>
+          <div className="text-center py-12 text-muted-foreground">{t.common.loading}</div>
         </main>
       </div>
     );
@@ -38,13 +40,13 @@ export default function ApplianceDetailsPage() {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12 text-muted-foreground">Appliance not found</div>
+          <div className="text-center py-12 text-muted-foreground">{t.appliances.applianceNotFound}</div>
         </main>
       </div>
     );
   }
 
-  const applianceLabel = [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || 'Appliance';
+  const applianceLabel = [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || t.appliances.title;
 
   const handlePrint = () => {
     window.print();
@@ -56,7 +58,7 @@ export default function ApplianceDetailsPage() {
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 print:hidden">
-          <BackButton to={`/clients/${appliance.clientId}`} label="Back to Client" />
+          <BackButton to={`/clients/${appliance.clientId}`} label={`${t.common.back} ${t.clients.clientDetails}`} />
         </div>
 
         <div className="flex items-start justify-between mb-6">
@@ -73,7 +75,7 @@ export default function ApplianceDetailsPage() {
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
-              Upload Photo
+              {t.appliances.uploadPhoto}
             </Button>
             <Button
               variant="outline"
@@ -83,48 +85,48 @@ export default function ApplianceDetailsPage() {
               className="gap-2"
             >
               <Printer className="h-4 w-4" />
-              Print
+              {t.common.print}
             </Button>
           </div>
         </div>
 
         <Card className="p-6 mb-6">
           <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
-            Appliance Information
+            {t.appliances.applianceInfo}
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">
             {appliance.maker && (
               <div className="flex items-center gap-2 text-sm">
                 <Wrench className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Maker:</span>
+                <span className="text-muted-foreground">{t.appliances.maker}:</span>
                 <span data-testid="text-maker">{appliance.maker}</span>
               </div>
             )}
             {appliance.type && (
               <div className="flex items-center gap-2 text-sm">
                 <Package className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Type:</span>
+                <span className="text-muted-foreground">{t.appliances.type}:</span>
                 <span data-testid="text-type">{appliance.type}</span>
               </div>
             )}
             {appliance.model && (
               <div className="flex items-center gap-2 text-sm">
                 <Wrench className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Model:</span>
+                <span className="text-muted-foreground">{t.appliances.model}:</span>
                 <span data-testid="text-model">{appliance.model}</span>
               </div>
             )}
             {appliance.serial && (
               <div className="flex items-center gap-2 text-sm font-mono">
                 <Hash className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Serial:</span>
+                <span className="text-muted-foreground">{t.appliances.serial}:</span>
                 <span data-testid="text-serial">{appliance.serial}</span>
               </div>
             )}
             {appliance.lastServiceDate && typeof appliance.lastServiceDate === 'string' && (
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Last Service:</span>
+                <span className="text-muted-foreground">{t.appliances.lastServiceDate}:</span>
                 <span data-testid="text-last-service">
                   {format(new Date(appliance.lastServiceDate), "MMM d, yyyy")}
                 </span>
@@ -133,7 +135,7 @@ export default function ApplianceDetailsPage() {
             {appliance.nextServiceDate && typeof appliance.nextServiceDate === 'string' && (
               <div className="flex items-center gap-2 text-sm sm:col-span-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Next Service:</span>
+                <span className="text-muted-foreground">{t.appliances.nextServiceDate}:</span>
                 <span data-testid="text-next-service">
                   {format(new Date(appliance.nextServiceDate), "MMM d, yyyy")}
                 </span>
@@ -145,24 +147,24 @@ export default function ApplianceDetailsPage() {
         {(appliance.city || appliance.building || appliance.room) && (
           <Card className="p-6 mb-6">
             <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
-              Location
+              {t.appliances.location}
             </h3>
             <div className="grid gap-4 sm:grid-cols-3">
               {appliance.city && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Grad (City)</p>
+                  <p className="text-xs text-muted-foreground">{t.appliances.city}</p>
                   <p className="text-sm font-medium" data-testid="text-city">{appliance.city}</p>
                 </div>
               )}
               {appliance.building && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Objekat (Building)</p>
+                  <p className="text-xs text-muted-foreground">{t.appliances.building}</p>
                   <p className="text-sm font-medium" data-testid="text-building">{appliance.building}</p>
                 </div>
               )}
               {appliance.room && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Prostorija (Room)</p>
+                  <p className="text-xs text-muted-foreground">{t.appliances.room}</p>
                   <p className="text-sm font-medium" data-testid="text-room">{appliance.room}</p>
                 </div>
               )}
@@ -170,9 +172,9 @@ export default function ApplianceDetailsPage() {
           </Card>
         )}
 
-        <h3 className="text-xl font-semibold mb-4">Service History</h3>
+        <h3 className="text-xl font-semibold mb-4">{t.appliances.serviceHistory}</h3>
         <div className="text-center py-12 text-muted-foreground">
-          No service history available yet
+          {t.appliances.noServiceHistory}
         </div>
       </main>
     </div>
