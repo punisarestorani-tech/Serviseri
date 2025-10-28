@@ -7,10 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, FileText, History as HistoryIcon, Upload, Wrench, Plus, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Package, FileText, History as HistoryIcon, Upload, Wrench, Plus, MapPin, Search, Repeat } from "lucide-react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import type { Appliance, Client, Task, Report } from "@shared/schema";
+import type { Appliance, Client, Task } from "@shared/schema";
 import { format } from "date-fns";
 
 export default function StoragePage() {
@@ -18,6 +19,7 @@ export default function StoragePage() {
   const [activeTab, setActiveTab] = useState("parts");
   const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [historySearchQuery, setHistorySearchQuery] = useState("");
 
   const { data: appliances = [] } = useQuery<Appliance[]>({
     queryKey: ["/api/appliances"],
@@ -27,8 +29,30 @@ export default function StoragePage() {
     queryKey: ["/api/clients"],
   });
 
-  const { data: reportsWithDetails = [], isLoading: isLoadingReports } = useQuery<Array<Report & { clientName: string; applianceName: string; taskDescription: string }>>({
-    queryKey: ["/api/reports/with-details"],
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery<Task[]>({
+    queryKey: ["/api/tasks"],
+  });
+
+  const completedTasks = tasks
+    .filter(task => task.status === "completed")
+    .map(task => {
+      const client = clients.find(c => c.id === task.clientId);
+      const appliance = task.applianceId ? appliances.find(a => a.id === task.applianceId) : null;
+      
+      const applianceName = appliance 
+        ? [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') 
+        : 'No appliance';
+      
+      return {
+        ...task,
+        clientName: client?.name || 'Unknown client',
+        applianceName,
+      };
+    });
+
+  const filteredCompletedTasks = completedTasks.filter(task => {
+    if (!historySearchQuery) return true;
+    return task.clientName.toLowerCase().includes(historySearchQuery.toLowerCase());
   });
 
   return (
@@ -210,7 +234,19 @@ export default function StoragePage() {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            {isLoadingReports ? (
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by client name..."
+                value={historySearchQuery}
+                onChange={(e) => setHistorySearchQuery(e.target.value)}
+                className="pl-9"
+                data-testid="input-search-history"
+              />
+            </div>
+
+            {isLoadingTasks ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="p-5 border-l-4 border-l-primary">
@@ -222,48 +258,47 @@ export default function StoragePage() {
                   </Card>
                 ))}
               </div>
-            ) : reportsWithDetails.length === 0 ? (
+            ) : filteredCompletedTasks.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                No service history available yet. Complete service reports to build history.
+                {historySearchQuery 
+                  ? "No completed tasks found matching your search" 
+                  : "No completed tasks yet. Complete tasks to build history."}
               </div>
             ) : (
               <div className="space-y-4">
-                {reportsWithDetails.map((report) => (
+                {filteredCompletedTasks.map((task) => (
                   <Card
-                    key={report.id}
-                    className="p-5 border-l-4 border-l-primary"
-                    data-testid={`card-report-${report.id}`}
+                    key={task.id}
+                    className="p-5 border-l-4 border-l-primary hover-elevate cursor-pointer"
+                    data-testid={`card-task-${task.id}`}
+                    onClick={() => setLocation(`/tasks/${task.id}`)}
                   >
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div>
-                        <h3 className="font-medium text-lg" data-testid={`text-client-${report.id}`}>
-                          {report.clientName}
+                        <h3 className="font-medium text-lg" data-testid={`text-client-${task.id}`}>
+                          {task.clientName}
                         </h3>
-                        <p className="text-sm text-muted-foreground" data-testid={`text-appliance-${report.id}`}>
-                          {report.applianceName}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Task: {report.taskDescription}
+                        <p className="text-sm text-muted-foreground" data-testid={`text-appliance-${task.id}`}>
+                          {task.applianceName}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium">
-                          {report.createdAt ? format(new Date(report.createdAt), "MMM d, yyyy") : 'N/A'}
-                        </p>
-                        {report.workDuration && (
-                          <p className="text-xs text-muted-foreground">
-                            Duration: {report.workDuration} min
+                        <Badge variant="secondary" className="mb-1">Completed</Badge>
+                        {task.dueDate && (
+                          <p className="text-sm font-medium">
+                            {format(new Date(task.dueDate), "MMM d, yyyy")}
                           </p>
                         )}
                       </div>
                     </div>
-                    <p className="text-sm" data-testid={`text-description-${report.id}`}>
-                      {report.description}
+                    <p className="text-sm" data-testid={`text-description-${task.id}`}>
+                      {task.description}
                     </p>
-                    {report.sparePartsUsed && (
+                    {task.taskType === "recurring" && (
                       <div className="mt-2 pt-2 border-t">
-                        <p className="text-xs text-muted-foreground">
-                          Spare parts used: {report.sparePartsUsed}
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Repeat className="h-3 w-3" />
+                          Recurring task
                         </p>
                       </div>
                     )}

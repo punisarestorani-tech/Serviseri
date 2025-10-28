@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Search, Repeat, Plus } from "lucide-react";
 import { useLocation } from "wouter";
@@ -23,9 +22,7 @@ import { startOfWeek, endOfWeek, isWithinInterval, parseISO } from "date-fns";
 export default function TasksPage() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [taskTypeFilter, setTaskTypeFilter] = useState<string>("all");
-  const [showCompleted, setShowCompleted] = useState(false);
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
   const { toast} = useToast();
@@ -142,22 +139,19 @@ export default function TasksPage() {
 
   const filteredTasks = tasks.filter((task) => {
     const client = clients.find(c => c.id === task.clientId);
-    const matchesSearch = task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (client?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     
-    const matchesStatus = statusFilter === "active" 
-      ? (task.status === "pending" || task.status === "in_progress")
-      : (statusFilter === "all" || task.status === statusFilter);
+    const matchesSearch = !searchQuery || 
+      (client?.name && client.name.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesType = taskTypeFilter === "all" || task.taskType === taskTypeFilter;
     
-    const matchesCompletedFilter = showCompleted || task.status !== "completed";
+    const isActive = task.status === "pending" || task.status === "in_progress";
     
     const matchesWeekFilter = task.taskType === "recurring" 
       ? isTaskInCurrentWeek(task) || task.status === "in_progress"
       : true;
     
-    return matchesSearch && matchesStatus && matchesType && matchesCompletedFilter && matchesWeekFilter;
+    return matchesSearch && matchesType && isActive && matchesWeekFilter;
   });
 
   return (
@@ -398,7 +392,7 @@ export default function TasksPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search tasks or clients..."
+                placeholder="Search by client name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -415,30 +409,6 @@ export default function TasksPage() {
                 <SelectItem value="recurring">Recurring</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48" data-testid="select-status-filter">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Checkbox 
-              id="show-completed" 
-              checked={showCompleted}
-              onCheckedChange={(checked) => setShowCompleted(checked === true)}
-              data-testid="checkbox-show-completed"
-            />
-            <Label htmlFor="show-completed" className="text-sm font-normal cursor-pointer">
-              Show completed tasks
-            </Label>
           </div>
         </div>
 
