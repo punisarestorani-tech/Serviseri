@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface SparePartUsed {
   sparePartId: string;
@@ -22,7 +25,7 @@ export default function CreateReportPage() {
   const [description, setDescription] = useState("");
   const [workDuration, setWorkDuration] = useState("");
   const [partsUsed, setPartsUsed] = useState<SparePartUsed[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const addSparePartRow = () => {
     setPartsUsed([...partsUsed, { sparePartId: "", quantity: 1 }]);
@@ -38,20 +41,42 @@ export default function CreateReportPage() {
     setPartsUsed(updated);
   };
 
+  const createReportMutation = useMutation({
+    mutationFn: async (reportData: any) => {
+      const report = await apiRequest("POST", "/api/reports", reportData);
+      await apiRequest("PATCH", `/api/tasks/${params?.id}`, { status: "completed" });
+      return report;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      toast({
+        title: "Success",
+        description: "Report submitted and task marked as completed",
+      });
+      setLocation('/tasks');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit report",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    setTimeout(() => {
-      console.log('Report submitted:', {
-        taskId: params?.id,
-        description,
-        workDuration,
-        partsUsed,
-      });
-      setIsSubmitting(false);
-      setLocation('/tasks');
-    }, 1000);
+    const reportData = {
+      taskId: params?.id,
+      description,
+      workDuration: parseInt(workDuration),
+      sparePartsUsed: partsUsed.length > 0 ? JSON.stringify(partsUsed) : null,
+      photos: null,
+    };
+    
+    createReportMutation.mutate(reportData);
   };
 
   return (
@@ -178,11 +203,11 @@ export default function CreateReportPage() {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={createReportMutation.isPending}
               className="flex-1"
               data-testid="button-submit-report"
             >
-              {isSubmitting ? "Submitting..." : "Submit Report"}
+              {createReportMutation.isPending ? "Submitting..." : "Submit Report"}
             </Button>
           </div>
         </form>
