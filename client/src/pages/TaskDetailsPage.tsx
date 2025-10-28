@@ -5,13 +5,13 @@ import StatusBadge from "@/components/StatusBadge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, MapPin, Wrench, Calendar, Package, Hash, Repeat, Clock, Printer } from "lucide-react";
+import { Mail, Phone, MapPin, Wrench, Calendar, Package, Hash, Repeat, Clock, Printer, FileText, Image } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useTranslation } from "@/i18n";
 import { getRecurrencePatternLabel, type RecurrencePattern } from "@/lib/recurringUtils";
-import type { Task, Client, Appliance } from "@shared/schema";
+import type { Task, Client, Appliance, Report } from "@shared/schema";
 
 export default function TaskDetailsPage() {
   const t = useTranslation();
@@ -31,11 +31,17 @@ export default function TaskDetailsPage() {
     queryKey: ["/api/appliances"],
   });
 
+  const { data: reports = [], isLoading: reportsLoading } = useQuery<Report[]>({
+    queryKey: [`/api/tasks/${taskId}/reports`],
+    enabled: !!taskId,
+  });
+
   const task = tasks.find(t => t.id === taskId);
   const client = task ? clients.find(c => c.id === task.clientId) : null;
   const appliance = task?.applianceId ? appliances.find(a => a.id === task.applianceId) : null;
+  const report = reports.length > 0 ? reports[0] : null;
 
-  const isLoading = tasksLoading || clientsLoading || appliancesLoading;
+  const isLoading = tasksLoading || clientsLoading || appliancesLoading || reportsLoading;
 
   if (isLoading) {
     return (
@@ -232,6 +238,65 @@ export default function TaskDetailsPage() {
             )}
           </div>
         </Card>
+
+        {task.status === "completed" && report && (
+          <Card className="p-6 mb-6">
+            <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              {t.reports.reportDetails}
+            </h3>
+            <div className="space-y-4">
+              {report.description && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">{t.reports.workDescription}</p>
+                  <p className="text-sm whitespace-pre-wrap" data-testid="text-report-description">{report.description}</p>
+                </div>
+              )}
+              
+              {report.workDuration && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{t.reports.workDuration}:</span>
+                  <span data-testid="text-work-duration">{report.workDuration} {t.tasks.intervalUnits.minutes || 'min'}</span>
+                </div>
+              )}
+
+              {report.sparePartsUsed && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">{t.reports.sparePartsUsed}</p>
+                  <div className="text-sm bg-muted p-3 rounded-md">
+                    {report.sparePartsUsed}
+                  </div>
+                </div>
+              )}
+
+              {report.photos && Array.isArray(report.photos) && report.photos.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    {t.reports.repairPhotos}
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {report.photos.map((photoUrl, index) => (
+                      <div
+                        key={index}
+                        className="aspect-square rounded-md overflow-hidden bg-muted group cursor-pointer"
+                        onClick={() => window.open(photoUrl, '_blank')}
+                        data-testid={`img-repair-${index}`}
+                      >
+                        <img
+                          src={photoUrl}
+                          alt={`Repair photo ${index + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {task.status !== "completed" && (
           <Button

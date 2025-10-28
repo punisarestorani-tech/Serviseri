@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import ImageUpload from "@/components/ImageUpload";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +42,7 @@ export default function AddApplianceDialog({
 }: AddApplianceDialogProps) {
   const t = useTranslation();
   const { toast } = useToast();
+  const [photoUrl, setPhotoUrl] = useState<string[]>([]);
 
   const form = useForm<ApplianceFormValues>({
     resolver: zodResolver(applianceFormSchema),
@@ -66,6 +68,7 @@ export default function AddApplianceDialog({
   useEffect(() => {
     if (!open) {
       form.reset();
+      setPhotoUrl([]);
     }
   }, [open, form]);
 
@@ -108,6 +111,7 @@ export default function AddApplianceDialog({
       type: values.type || null,
       model: values.model || null,
       serial: values.serial || null,
+      picture: photoUrl.length > 0 ? photoUrl[0] : null,
       city: values.city || null,
       building: values.building || null,
       room: values.room || null,
@@ -277,6 +281,17 @@ export default function AddApplianceDialog({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <Label>{t.appliances.picture}</Label>
+              <ImageUpload
+                bucket="appliance-photos"
+                maxImages={1}
+                value={photoUrl}
+                onChange={setPhotoUrl}
+                disabled={createApplianceMutation.isPending}
+              />
+            </div>
 
             <div className="flex gap-3 pt-4">
               <Button

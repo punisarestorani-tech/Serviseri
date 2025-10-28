@@ -90,6 +90,20 @@ export default function ApplianceDetailsPage() {
           </div>
         </div>
 
+        {appliance.picture && (
+          <Card className="p-6 mb-6">
+            <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
+              {t.appliances.picture}
+            </h3>
+            <img
+              src={appliance.picture}
+              alt={applianceLabel}
+              className="w-full max-w-md rounded-md object-cover"
+              data-testid="img-appliance"
+            />
+          </Card>
+        )}
+
         <Card className="p-6 mb-6">
           <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
             {t.appliances.applianceInfo}

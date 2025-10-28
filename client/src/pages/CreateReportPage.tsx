@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
-import FileUpload from "@/components/FileUpload";
+import ImageUpload from "@/components/ImageUpload";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,7 @@ export default function CreateReportPage() {
   const [description, setDescription] = useState("");
   const [workDuration, setWorkDuration] = useState("");
   const [partsUsed, setPartsUsed] = useState<SparePartUsed[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const { toast } = useToast();
 
   const addSparePartRow = () => {
@@ -71,7 +72,7 @@ export default function CreateReportPage() {
       description,
       workDuration: parseInt(workDuration),
       sparePartsUsed: partsUsed.length > 0 ? JSON.stringify(partsUsed) : null,
-      photos: null,
+      photos: photoUrls.length > 0 ? photoUrls : null,
     };
     
     createReportMutation.mutate(reportData);
@@ -123,9 +124,13 @@ export default function CreateReportPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>{t.reports.photos}</Label>
-                <FileUpload
-                  onChange={(files) => console.log('Photos uploaded:', files)}
+                <Label>{t.reports.repairPhotos}</Label>
+                <ImageUpload
+                  bucket="report-photos"
+                  maxImages={10}
+                  value={photoUrls}
+                  onChange={setPhotoUrls}
+                  disabled={createReportMutation.isPending}
                 />
               </div>
             </div>

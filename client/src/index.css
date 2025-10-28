@@ -349,3 +349,46 @@
     inset: -1px;
   }
 }
+
+/* Print styles for reports with images */
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Optimize image printing */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Keep content together */
+  h2, h3, h4 {
+    page-break-after: avoid;
+  }
+
+  /* Report images grid for printing */
+  .grid {
+    page-break-inside: avoid;
+  }
+
+  /* Ensure repair photos display properly */
+  [data-testid^="img-repair-"] {
+    page-break-inside: avoid;
+    display: inline-block;
+    width: 200px !important;
+    height: 200px !important;
+    margin: 8px;
+  }
+
+  /* Print-friendly colors */
+  body {
+    background: white;
+    color: black;
+  }
+
+  .bg-muted,
+  .bg-card {
+    background: white !important;
+  }
+}
