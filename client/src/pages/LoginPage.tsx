@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Wrench } from "lucide-react";
 import { useLocation } from "wouter";
+import tehnikoLogo from "@assets/ChatGPT Image Oct 28, 2025, 11_42_45 AM_1761648757952.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -28,10 +28,14 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-4">
-            <Wrench className="h-8 w-8" />
+          <div className="inline-flex items-center justify-center mb-6">
+            <img 
+              src={tehnikoLogo} 
+              alt="Tehniko System - Budva Montenegro" 
+              className="h-24 w-auto"
+              data-testid="img-logo"
+            />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Service Manager</h1>
           <p className="text-sm text-muted-foreground">
             Sign in to manage your service tasks
           </p>
