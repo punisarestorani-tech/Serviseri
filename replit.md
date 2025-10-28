@@ -143,5 +143,16 @@ Core entities with VARCHAR UUID primary keys:
 - **AuthContext** on frontend provides current user data via `useAuth` hook
 - Header component displays user's full name instead of hardcoded placeholder
 - Session persists across page navigation with 7-day cookie expiration
-- Test user: username "lolo", password "lolo", full name "Luka Petrović"
+- Test user: username "lolo", password "lolo", full name "Punisa Raicevic"
 - Note: Password validation is simplified (plaintext comparison) - production should use bcrypt hashing
+
+**Internationalization (i18n)** (Added October 28, 2025)
+- **Dual-language support**: English and Serbian (Српски)
+- **LanguageContext** with React Context API for global language state management
+- **LocalStorage persistence**: User's language preference saved and restored automatically
+- **Translation files**: Comprehensive dictionaries in `client/src/i18n/en.ts` and `client/src/i18n/sr.ts` with 250+ keys
+- **LanguageSelector component**: Dropdown with flag icons in header and login page
+- **useTranslation() hook**: Provides type-safe access to translations throughout the app
+- **Coverage**: All major UI elements, forms, dialogs, toast messages, and validation errors translated
+- **Default language**: Serbian (Српски) to match Montenegro/Budva region
+- Language switcher accessible on login page (top-right) and in header after login
