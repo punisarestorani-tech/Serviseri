@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS clients (
 COMMENT ON TABLE clients IS 'Klijenti - hoteli, restorani, preduzeća';
 COMMENT ON COLUMN clients.client_pib IS 'PIB broj';
 COMMENT ON COLUMN clients.client_pdv IS 'PDV broj';
-COMMENT ON COLUMN clients.client_account VARCHAR IS 'Broj računa';
+COMMENT ON COLUMN clients.client_account IS 'Broj računa';
 
 -- =================================================================
 -- 3. APPLIANCES TABLE (Aparati/Oprema)
