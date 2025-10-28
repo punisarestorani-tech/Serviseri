@@ -14,42 +14,42 @@ export const profiles = pgTable("profiles", {
 });
 
 export const clients = pgTable("clients", {
-  id: varchar("client_id").primaryKey(),
-  name: varchar("client_name").notNull(),
-  address: varchar("client_address"),
-  contact: varchar("client_contact"),
-  pib: varchar("client_pib"),
-  pdv: varchar("client_pdv"),
-  account: varchar("client_account"),
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
+  address: varchar("address"),
+  contact: varchar("contact"),
+  pib: varchar("pib"),
+  pdv: varchar("pdv"),
+  account: varchar("account"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const appliances = pgTable("appliances", {
-  id: varchar("appliance_id").primaryKey(),
+  id: varchar("id").primaryKey(),
   clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  maker: varchar("appliance_maker"),
-  type: varchar("appliance_type"),
-  model: varchar("appliance_model"),
-  serial: varchar("appliance_serial"),
-  picture: varchar("appliance_picture"),
-  city: varchar("appliance_city"),
-  building: varchar("appliance_building"),
-  room: varchar("appliance_room"),
+  maker: varchar("maker"),
+  type: varchar("type"),
+  model: varchar("model"),
+  serial: varchar("serial"),
+  picture: varchar("picture"),
+  city: varchar("city"),
+  building: varchar("building"),
+  room: varchar("room"),
   lastServiceDate: date("last_service_date"),
   nextServiceDate: date("next_service_date"),
-  installDate: date("appliance_install_date"),
+  installDate: date("install_date"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const tasks = pgTable("tasks", {
-  id: varchar("task_id").primaryKey(),
+  id: varchar("id").primaryKey(),
   clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
   applianceId: varchar("appliance_id").references(() => appliances.id, { onDelete: "set null" }),
   userId: varchar("user_id").references(() => profiles.id, { onDelete: "set null" }),
   status: text("status").notNull().default("pending"),
   taskType: text("task_type").notNull().default("one-time"),
-  description: text("task_description").notNull(),
-  dueDate: date("task_due_date"),
+  description: text("description").notNull(),
+  dueDate: date("due_date"),
   priority: text("priority").default("normal"),
   
   recurrencePattern: text("recurrence_pattern").default("none"),
@@ -64,9 +64,9 @@ export const tasks = pgTable("tasks", {
 });
 
 export const reports = pgTable("reports", {
-  id: varchar("report_id").primaryKey(),
+  id: varchar("id").primaryKey(),
   taskId: varchar("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
-  description: text("report_description").notNull(),
+  description: text("description").notNull(),
   sparePartsUsed: text("spare_parts_used"),
   workDuration: integer("work_duration"),
   photos: text("photos"),
@@ -74,20 +74,20 @@ export const reports = pgTable("reports", {
 });
 
 export const documents = pgTable("documents", {
-  id: varchar("document_id").primaryKey(),
-  name: varchar("document_name").notNull(),
-  type: varchar("document_type"),
-  url: varchar("document_url").notNull(),
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
+  type: varchar("type"),
+  url: varchar("url").notNull(),
   relatedTo: varchar("related_to"),
   relatedId: varchar("related_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const spareParts = pgTable("spare_parts", {
-  id: varchar("part_id").primaryKey(),
-  name: varchar("part_name").notNull(),
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
   partNumber: varchar("part_number"),
-  manufacturer: varchar("part_manufacturer"),
+  manufacturer: varchar("manufacturer"),
   quantityInStock: integer("quantity_in_stock").default(0),
   minimumStockLevel: integer("minimum_stock_level").default(0),
   unitPrice: integer("unit_price"),
