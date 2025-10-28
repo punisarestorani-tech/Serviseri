@@ -1,16 +1,20 @@
+import { useState } from "react";
 import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
 import { Card } from "@/components/ui/card";
-import { Mail, Phone, MapPin, Wrench, Calendar, Building2, FileText, Hash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Mail, Phone, MapPin, Wrench, Calendar, Building2, FileText, Hash, Plus } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import type { Client, Appliance } from "@shared/schema";
+import AddApplianceDialog from "@/components/AddApplianceDialog";
 
 export default function ClientDetailsPage() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/clients/:id");
   const clientId = params?.id;
+  const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
 
   const { data: clients = [], isLoading: clientsLoading } = useQuery<Client[]>({
     queryKey: ["/api/clients"],
@@ -119,9 +123,19 @@ export default function ClientDetailsPage() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
-            Appliances ({clientAppliances.length})
-          </h3>
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <h3 className="text-sm uppercase tracking-wide font-semibold text-muted-foreground">
+              Appliances ({clientAppliances.length})
+            </h3>
+            <Button
+              size="sm"
+              onClick={() => setIsAddApplianceOpen(true)}
+              data-testid="button-add-appliance"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Appliance
+            </Button>
+          </div>
           {clientAppliances.length === 0 ? (
             <p className="text-sm text-muted-foreground">No appliances registered for this client</p>
           ) : (
@@ -152,6 +166,15 @@ export default function ClientDetailsPage() {
           )}
         </Card>
       </main>
+
+      <AddApplianceDialog
+        open={isAddApplianceOpen}
+        onOpenChange={setIsAddApplianceOpen}
+        clientId={clientId}
+        onSuccess={(applianceId) => {
+          setLocation(`/appliances/${applianceId}`);
+        }}
+      />
     </div>
   );
 }
