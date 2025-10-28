@@ -5,7 +5,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, MapPin, Wrench, Calendar, Package, Hash, Repeat, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Wrench, Calendar, Package, Hash, Repeat, Clock, Printer } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -95,7 +95,21 @@ export default function TaskDetailsPage() {
               Created {task.createdAt ? format(new Date(task.createdAt), "MMMM d, yyyy") : 'Unknown date'}
             </p>
           </div>
-          <StatusBadge status={task.status as "pending" | "in_progress" | "completed"} />
+          <div className="flex flex-col items-end gap-3">
+            <StatusBadge status={task.status as "pending" | "in_progress" | "completed"} />
+            {task.status === "completed" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => window.print()}
+                data-testid="button-print-report"
+              >
+                <Printer className="h-4 w-4" />
+                Print Report
+              </Button>
+            )}
+          </div>
         </div>
 
         {task.taskType === "recurring" && task.recurrencePattern !== "none" && (
