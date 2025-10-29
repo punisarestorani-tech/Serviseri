@@ -4,11 +4,12 @@ import BackButton from "@/components/BackButton";
 import EditApplianceDialog from "@/components/EditApplianceDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wrench, Calendar, Hash, Edit, Printer, Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Wrench, Calendar, Hash, Edit, Printer, Package, FileText } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
-import type { Appliance, Client } from "@shared/schema";
+import type { Appliance, Client, Task, Report } from "@shared/schema";
 import { format } from "date-fns";
 
 export default function ApplianceDetailsPage() {
@@ -26,6 +27,33 @@ export default function ApplianceDetailsPage() {
     queryKey: ["/api/clients", appliance?.clientId],
     enabled: !!appliance?.clientId,
   });
+
+  const { data: tasks = [] } = useQuery<Task[]>({
+    queryKey: ["/api/tasks"],
+  });
+
+  const { data: allReports = [] } = useQuery<Report[]>({
+    queryKey: ["/api/reports"],
+  });
+
+  // Filter tasks for this appliance that are completed
+  const applianceTasks = tasks.filter(
+    task => task.applianceId === params?.id && task.status === "completed"
+  );
+
+  // Get reports with their corresponding task data
+  const serviceHistory = applianceTasks
+    .map(task => {
+      const report = allReports.find(r => r.taskId === task.id);
+      return report ? { task, report } : null;
+    })
+    .filter((item): item is { task: Task; report: Report } => item !== null)
+    .sort((a, b) => {
+      // Sort by task due date, newest first
+      const dateA = a.task.dueDate ? new Date(a.task.dueDate).getTime() : 0;
+      const dateB = b.task.dueDate ? new Date(b.task.dueDate).getTime() : 0;
+      return dateB - dateA;
+    });
 
   if (isLoadingAppliance) {
     return (
@@ -57,7 +85,7 @@ export default function ApplianceDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header username="John Smith" onLogout={() => setLocation('/')} />
+      <Header />
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 print:hidden">
@@ -190,9 +218,51 @@ export default function ApplianceDetailsPage() {
         )}
 
         <h3 className="text-xl font-semibold mb-4">{t.appliances.serviceHistory}</h3>
-        <div className="text-center py-12 text-muted-foreground">
-          {t.appliances.noServiceHistory}
-        </div>
+        {serviceHistory.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            {t.appliances.noServiceHistory}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {serviceHistory.map(({ task, report }) => (
+              <Card
+                key={task.id}
+                className="p-5 border-l-4 border-l-primary hover-elevate cursor-pointer"
+                onClick={() => setLocation(`/tasks/${task.id}`)}
+                data-testid={`card-service-${task.id}`}
+              >
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <h4 className="font-medium" data-testid={`text-task-desc-${task.id}`}>
+                        {task.description}
+                      </h4>
+                    </div>
+                    {report.description && (
+                      <p className="text-sm text-muted-foreground mb-2" data-testid={`text-work-desc-${task.id}`}>
+                        {report.description}
+                      </p>
+                    )}
+                    {report.sparePartsUsed && (
+                      <div className="text-xs text-muted-foreground mt-2">
+                        <span className="font-medium">{t.reports.sparePartsUsed}:</span> {report.sparePartsUsed}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="secondary" className="mb-1">{t.tasks.statuses.completed}</Badge>
+                    {task.dueDate && (
+                      <p className="text-sm font-medium" data-testid={`text-date-${task.id}`}>
+                        {format(new Date(task.dueDate), "MMM d, yyyy")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {appliance && (
           <EditApplianceDialog
