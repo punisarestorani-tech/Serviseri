@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
 import AddApplianceDialog from "@/components/AddApplianceDialog";
@@ -18,10 +18,22 @@ import { format } from "date-fns";
 export default function StoragePage() {
   const t = useTranslation();
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState("parts");
+  
+  // Get tab from URL query params
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabFromUrl = urlParams.get('tab') || 'parts';
+  
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [historySearchQuery, setHistorySearchQuery] = useState("");
+  
+  // Update URL when tab changes
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    const newUrl = `/storage?tab=${newTab}`;
+    window.history.pushState({}, '', newUrl);
+  };
 
   const { data: appliances = [] } = useQuery<Appliance[]>({
     queryKey: ["/api/appliances"],
@@ -76,7 +88,7 @@ export default function StoragePage() {
 
         <h2 className="text-3xl font-bold mb-6">{t.storage.title}</h2>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="parts" data-testid="tab-parts" className="gap-2">
               <Package className="h-4 w-4" />
@@ -178,7 +190,7 @@ export default function StoragePage() {
                         key={appliance.id} 
                         className="p-5 hover-elevate active-elevate-2 cursor-pointer overflow-visible" 
                         data-testid={`card-appliance-${appliance.id}`}
-                        onClick={() => setLocation(`/appliances/${appliance.id}`)}
+                        onClick={() => setLocation(`/appliances/${appliance.id}?from=storage&tab=appliances`)}
                       >
                         <div className="mb-3">
                           <h3 className="font-medium text-lg mb-1">{applianceLabel}</h3>
@@ -281,7 +293,7 @@ export default function StoragePage() {
                     key={task.id}
                     className="p-5 border-l-4 border-l-primary hover-elevate cursor-pointer"
                     data-testid={`card-task-${task.id}`}
-                    onClick={() => setLocation(`/tasks/${task.id}`)}
+                    onClick={() => setLocation(`/tasks/${task.id}?from=storage&tab=history`)}
                   >
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div>
