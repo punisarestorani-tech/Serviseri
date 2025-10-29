@@ -92,33 +92,32 @@ export default function ApplianceDetailsPage() {
           <BackButton />
         </div>
 
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">{applianceLabel}</h2>
-            <p className="text-muted-foreground">{client?.name}</p>
-          </div>
-          <div className="flex gap-2 print:hidden">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditDialogOpen(true)}
-              data-testid="button-edit-appliance"
-              className="gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              {t.appliances.editAppliance}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              data-testid="button-print"
-              className="gap-2"
-            >
-              <Printer className="h-4 w-4" />
-              {t.common.print}
-            </Button>
-          </div>
+        <div className="flex justify-end gap-2 mb-4 print:hidden">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditDialogOpen(true)}
+            data-testid="button-edit-appliance"
+            className="gap-2"
+          >
+            <Edit className="h-4 w-4" />
+            {t.appliances.editAppliance}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrint}
+            data-testid="button-print"
+            className="gap-2"
+          >
+            <Printer className="h-4 w-4" />
+            {t.common.print}
+          </Button>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold mb-2">{applianceLabel}</h2>
+          <p className="text-muted-foreground">{client?.name}</p>
         </div>
 
         {appliance.picture && (
