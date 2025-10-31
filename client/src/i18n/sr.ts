@@ -95,7 +95,6 @@ export const sr = {
     location: 'Lokacija',
     updating: 'Ažuriranje...',
     saveChanges: 'Sačuvaj Promene',
-    updateSuccess: 'Uređaj uspešno ažuriran',
     updateError: 'Greška pri ažuriranju uređaja',
     client: 'Klijent',
     lastServiceDate: 'Poslednji Servis',

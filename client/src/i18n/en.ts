@@ -95,7 +95,6 @@ export const en = {
     location: 'Location',
     updating: 'Updating...',
     saveChanges: 'Save Changes',
-    updateSuccess: 'Appliance updated successfully',
     updateError: 'Failed to update appliance',
     client: 'Client',
     lastServiceDate: 'Last Service',
