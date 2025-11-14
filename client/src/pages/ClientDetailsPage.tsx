@@ -33,10 +33,10 @@ export default function ClientDetailsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header username="Technician" onLogout={() => setLocation('/')} />
+        <Header />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6">
-            <BackButton to="/clients" label={`${t.common.back} ${t.clients.title}`} />
+            <BackButton />
           </div>
           <div className="text-center py-12 text-muted-foreground">
             {t.common.loading}
