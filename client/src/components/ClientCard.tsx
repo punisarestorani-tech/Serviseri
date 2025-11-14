@@ -1,12 +1,13 @@
 import { Card } from "@/components/ui/card";
-import { Mail, Phone, Wrench } from "lucide-react";
+import { Mail, Phone, Wrench, User } from "lucide-react";
 import { useTranslation } from "@/i18n";
 
 interface ClientCardProps {
   clientId: string;
   name: string;
-  email: string;
-  phone: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   applianceCount: number;
   onClick?: () => void;
 }
@@ -14,8 +15,9 @@ interface ClientCardProps {
 export default function ClientCard({
   clientId,
   name,
-  email,
-  phone,
+  contactName,
+  contactEmail,
+  contactPhone,
   applianceCount,
   onClick,
 }: ClientCardProps) {
@@ -30,18 +32,30 @@ export default function ClientCard({
         {name}
       </h3>
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm">
-          <Mail className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground" data-testid={`text-email-${clientId}`}>
-            {email}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Phone className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground" data-testid={`text-phone-${clientId}`}>
-            {phone}
-          </span>
-        </div>
+        {contactName && (
+          <div className="flex items-center gap-2 text-sm">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground" data-testid={`text-contact-name-${clientId}`}>
+              {contactName}
+            </span>
+          </div>
+        )}
+        {contactEmail && (
+          <div className="flex items-center gap-2 text-sm">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground" data-testid={`text-contact-email-${clientId}`}>
+              {contactEmail}
+            </span>
+          </div>
+        )}
+        {contactPhone && (
+          <div className="flex items-center gap-2 text-sm">
+            <Phone className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground" data-testid={`text-contact-phone-${clientId}`}>
+              {contactPhone}
+            </span>
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-2 text-sm font-medium pt-2 border-t">
         <Wrench className="h-4 w-4 text-primary" />

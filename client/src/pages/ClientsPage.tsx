@@ -20,8 +20,9 @@ export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const [newClientName, setNewClientName] = useState("");
-  const [newClientEmail, setNewClientEmail] = useState("");
-  const [newClientPhone, setNewClientPhone] = useState("");
+  const [newClientContactName, setNewClientContactName] = useState("");
+  const [newClientContactEmail, setNewClientContactEmail] = useState("");
+  const [newClientContactPhone, setNewClientContactPhone] = useState("");
   const [newClientAddress, setNewClientAddress] = useState("");
   const { toast } = useToast();
 
@@ -43,8 +44,9 @@ export default function ClientsPage() {
         description: t.clients.createSuccess,
       });
       setNewClientName("");
-      setNewClientEmail("");
-      setNewClientPhone("");
+      setNewClientContactName("");
+      setNewClientContactEmail("");
+      setNewClientContactPhone("");
       setNewClientAddress("");
       setIsAddClientOpen(false);
     },
@@ -59,8 +61,9 @@ export default function ClientsPage() {
   const handleAddClient = () => {
     createClientMutation.mutate({
       name: newClientName,
-      email: newClientEmail,
-      phone: newClientPhone,
+      contactName: newClientContactName || null,
+      contactEmail: newClientContactEmail || null,
+      contactPhone: newClientContactPhone || null,
       address: newClientAddress || null,
     });
   };
@@ -71,7 +74,7 @@ export default function ClientsPage() {
 
   const filteredClients = clients.filter((client) =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (client.contact?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+    (client.contactName?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   );
 
   return (
@@ -109,29 +112,41 @@ export default function ClientsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client-email">
-                    {t.clients.email} <span className="text-destructive">*</span>
+                  <Label htmlFor="client-contact-name">
+                    {t.clients.contactName}
                   </Label>
                   <Input
-                    id="client-email"
-                    type="email"
-                    placeholder={t.clients.emailPlaceholder}
-                    value={newClientEmail}
-                    onChange={(e) => setNewClientEmail(e.target.value)}
-                    data-testid="input-client-email"
+                    id="client-contact-name"
+                    placeholder={t.clients.contactNamePlaceholder || "Contact person name"}
+                    value={newClientContactName}
+                    onChange={(e) => setNewClientContactName(e.target.value)}
+                    data-testid="input-client-contact-name"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="client-phone">
-                    {t.clients.phone} <span className="text-destructive">*</span>
+                  <Label htmlFor="client-contact-email">
+                    {t.clients.contactEmail}
                   </Label>
                   <Input
-                    id="client-phone"
+                    id="client-contact-email"
+                    type="email"
+                    placeholder={t.clients.contactEmailPlaceholder || "contact@example.com"}
+                    value={newClientContactEmail}
+                    onChange={(e) => setNewClientContactEmail(e.target.value)}
+                    data-testid="input-client-contact-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client-contact-phone">
+                    {t.clients.contactPhone}
+                  </Label>
+                  <Input
+                    id="client-contact-phone"
                     type="tel"
-                    placeholder={t.clients.phonePlaceholder}
-                    value={newClientPhone}
-                    onChange={(e) => setNewClientPhone(e.target.value)}
-                    data-testid="input-client-phone"
+                    placeholder={t.clients.contactPhonePlaceholder || "+382 XX XXX XXX"}
+                    value={newClientContactPhone}
+                    onChange={(e) => setNewClientContactPhone(e.target.value)}
+                    data-testid="input-client-contact-phone"
                   />
                 </div>
                 <div className="space-y-2">
@@ -157,7 +172,7 @@ export default function ClientsPage() {
                   </Button>
                   <Button
                     onClick={handleAddClient}
-                    disabled={!newClientName || !newClientEmail || !newClientPhone || createClientMutation.isPending}
+                    disabled={!newClientName || createClientMutation.isPending}
                     className="flex-1"
                     data-testid="button-create-client"
                   >
@@ -189,8 +204,9 @@ export default function ClientsPage() {
               key={client.id || client.clientId}
               clientId={client.id || client.clientId}
               name={client.name}
-              email={client.email}
-              phone={client.phone}
+              contactName={client.contactName}
+              contactEmail={client.contactEmail}
+              contactPhone={client.contactPhone}
               applianceCount={getApplianceCount(client.id || client.clientId)}
               onClick={() => setLocation(`/clients/${client.id || client.clientId}`)}
             />
