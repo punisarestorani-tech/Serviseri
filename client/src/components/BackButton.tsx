@@ -11,13 +11,13 @@ export default function BackButton({ label }: BackButtonProps) {
   
   return (
     <Button
-      variant="ghost"
-      size="sm"
+      variant="outline"
+      size="default"
       onClick={() => window.history.back()}
       data-testid="button-back"
-      className="gap-2 -ml-2"
+      className="gap-2 bg-secondary/50"
     >
-      <ArrowLeft className="h-4 w-4" />
+      <ArrowLeft className="h-5 w-5" />
       {label || t.common.back}
     </Button>
   );
