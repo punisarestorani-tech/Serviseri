@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Search, Repeat, Plus } from "lucide-react";
+import { Repeat, Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -23,7 +23,7 @@ import { generateUpcomingDates, getRecurrencePatternLabel, type RecurrencePatter
 export default function TasksPage() {
   const t = useTranslation();
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [clientFilter, setClientFilter] = useState<string>("all");
   const [taskTypeFilter, setTaskTypeFilter] = useState<string>("all");
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
@@ -117,16 +117,13 @@ export default function TasksPage() {
 
   const filteredTasks = tasks
     .filter((task) => {
-      const client = clients.find(c => c.id === task.clientId);
-      
-      const matchesSearch = !searchQuery || 
-        (client?.name && client.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesClient = clientFilter === "all" || task.clientId === clientFilter;
       
       const matchesType = taskTypeFilter === "all" || task.taskType === taskTypeFilter;
       
       const isActive = task.status === "pending" || task.status === "in_progress";
       
-      return matchesSearch && matchesType && isActive;
+      return matchesClient && matchesType && isActive;
     })
     .sort((a, b) => {
       // Tasks without due dates go to the end
@@ -389,17 +386,17 @@ export default function TasksPage() {
 
         <div className="space-y-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={t.tasks.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-                data-testid="input-search-tasks"
-              />
-            </div>
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="flex-1" data-testid="select-client-filter">
+                <SelectValue placeholder={t.tasks.filterByClient || "Filter by Client"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.tasks.allClients || "All Clients"}</SelectItem>
+                {clients.map(client => (
+                  <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={taskTypeFilter} onValueChange={setTaskTypeFilter}>
               <SelectTrigger className="w-full sm:w-48" data-testid="select-type-filter">
                 <SelectValue placeholder={t.tasks.filterByType} />
