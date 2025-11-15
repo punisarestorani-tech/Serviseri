@@ -2,7 +2,7 @@
 
 ## Overview
 
-A full-stack web application designed for technicians who maintain equipment and appliances for hotels, restaurants, and businesses. The system enables task management, client tracking, appliance maintenance history, service reporting, and inventory management. Built with React frontend, Express backend, PostgreSQL database via Neon, and follows Material Design principles with productivity-focused UI patterns.
+A full-stack web application designed for technicians who maintain equipment and appliances for hotels, restaurants, and businesses. The system enables task management, client tracking, appliance maintenance history, service reporting, and inventory management. **Voice-to-text report generation** powered by OpenAI Whisper and GPT-4o allows technicians to dictate service reports hands-free. Built with React frontend, Express backend, PostgreSQL database via Supabase, and follows Material Design principles with productivity-focused UI patterns.
 
 ## User Preferences
 
@@ -161,6 +161,21 @@ Core entities with VARCHAR UUID primary keys:
 - **Coverage**: All major UI elements, forms, dialogs, toast messages, and validation errors translated
 - **Default language**: Serbian (Српски) to match Montenegro/Budva region
 - Language switcher accessible on login page (top-right) and in header after login
+
+**Voice-to-Text Report Generation** (Added November 15, 2025)
+- **OpenAI Integration**: Whisper API for speech-to-text transcription + GPT-4o for structured report generation
+- **Workflow**: Record audio → FFmpeg converts WebM to MP3 → Whisper transcribes → GPT-4o generates structured report
+- **Audio Processing**: FFmpeg (`fluent-ffmpeg`) automatically converts mobile browser audio (WebM) to MP3 format
+  - Mono audio at 16kHz for optimal Whisper performance
+  - Handles multiple audio formats: webm, mp4, ogg
+- **Context-Aware**: Passes client and appliance information to improve transcription accuracy and report quality
+- **Serbian Language**: Whisper configured for Serbian (`sr`) language recognition
+- **Structured Output**: GPT-4o extracts work description, duration (minutes), and spare parts used from voice input
+- **VoiceRecordButton Component**: Gradient UI with recording states (idle → recording → processing)
+- **API Endpoint**: `POST /api/transcribe-voice` with multipart/form-data support
+- **Environment**: Requires `OPENAI_API_KEY` in Replit Secrets with billing enabled
+- **Cost Estimate**: ~$0.02-0.05 per voice recording (Whisper + GPT-4o)
+- **FormData Fix**: Custom `apiRequest` function detects FormData and skips JSON serialization
 
 **Mobile App Deployment - Capacitor** (Added October 30, 2025)
 - **Capacitor 7.4.4** integrated for native Android (and iOS) app deployment
