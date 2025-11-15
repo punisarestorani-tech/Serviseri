@@ -258,6 +258,7 @@ export const en = {
     noSpareParts: 'No spare parts in inventory. Add spare parts to track inventory.',
     filterByClient: 'Filter by client',
     allClients: 'All Clients',
+    selectClient: 'Select client',
     noAppliancesSelectClient: 'No appliances found. Select a client and add one to get started.',
     noAppliancesForClient: 'No appliances found for the selected client.',
     uploadDocument: 'Upload Document',

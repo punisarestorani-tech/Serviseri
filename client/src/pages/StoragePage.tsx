@@ -26,7 +26,7 @@ export default function StoragePage() {
   const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [isAddApplianceOpen, setIsAddApplianceOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
-  const [historySearchQuery, setHistorySearchQuery] = useState("");
+  const [historyClientFilter, setHistoryClientFilter] = useState<string>("all");
   
   // Update URL when tab changes
   const handleTabChange = (newTab: string) => {
@@ -66,8 +66,8 @@ export default function StoragePage() {
 
   const filteredCompletedTasks = completedTasks
     .filter(task => {
-      if (!historySearchQuery) return true;
-      return task.clientName.toLowerCase().includes(historySearchQuery.toLowerCase());
+      if (historyClientFilter === "all") return true;
+      return task.clientId === historyClientFilter;
     })
     .sort((a, b) => {
       // Sort by due date, newest first (descending)
@@ -256,16 +256,31 @@ export default function StoragePage() {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={t.storage.searchByClient}
-                value={historySearchQuery}
-                onChange={(e) => setHistorySearchQuery(e.target.value)}
-                className="pl-9"
-                data-testid="input-search-history"
-              />
+            <div className="mb-4">
+              <Select
+                value={historyClientFilter}
+                onValueChange={setHistoryClientFilter}
+              >
+                <SelectTrigger className="w-full" data-testid="select-filter-history">
+                  <SelectValue placeholder={t.storage.selectClient} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" data-testid="option-all-clients">
+                    {t.storage.allClients}
+                  </SelectItem>
+                  {clients
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((client) => (
+                      <SelectItem 
+                        key={client.id} 
+                        value={client.id}
+                        data-testid={`option-client-${client.id}`}
+                      >
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {isLoadingTasks ? (
@@ -282,7 +297,7 @@ export default function StoragePage() {
               </div>
             ) : filteredCompletedTasks.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                {historySearchQuery 
+                {historyClientFilter !== "all"
                   ? t.storage.noCompletedTasksSearch
                   : t.storage.noCompletedTasks}
               </div>

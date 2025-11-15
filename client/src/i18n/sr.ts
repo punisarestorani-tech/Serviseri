@@ -258,6 +258,7 @@ export const sr = {
     noSpareParts: 'Nema rezervnih delova u inventaru. Dodajte rezervne delove.',
     filterByClient: 'Filtriraj po klijentu',
     allClients: 'Svi Klijenti',
+    selectClient: 'Izaberite klijenta',
     noAppliancesSelectClient: 'Nema uređaja. Izaberite klijenta i dodajte uređaj.',
     noAppliancesForClient: 'Nema uređaja za izabranog klijenta.',
     uploadDocument: 'Otpremi Dokument',
