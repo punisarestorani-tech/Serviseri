@@ -2,6 +2,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
 import ImageUpload from "@/components/ImageUpload";
+import VoiceRecordButton from "@/components/VoiceRecordButton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -71,6 +72,17 @@ export default function CreateReportPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-6">
             <div className="space-y-6">
+              <div className="space-y-2">
+                <VoiceRecordButton
+                  onReportGenerated={(reportData) => {
+                    setDescription(reportData.description);
+                    setWorkDuration(reportData.workDuration.toString());
+                    setSparePartsUsed(reportData.sparePartsUsed || "");
+                  }}
+                  disabled={createReportMutation.isPending}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="description">
                   {t.reports.workDescription} <span className="text-destructive">*</span>
