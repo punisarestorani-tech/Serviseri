@@ -31,25 +31,31 @@ async function convertToMp3(inputBuffer: Buffer, inputFormat: string): Promise<B
     const chunks: Buffer[] = [];
     const inputStream = Readable.from(inputBuffer);
     
-    ffmpeg(inputStream)
+    const command = ffmpeg(inputStream)
       .inputFormat(inputFormat)
       .audioCodec('libmp3lame')
       .audioBitrate('128k')
+      .audioChannels(1) // Mono for smaller file size
+      .audioFrequency(16000) // 16kHz is optimal for Whisper
       .format('mp3')
       .on('error', (err) => {
         console.error('FFmpeg conversion error:', err);
         reject(err);
       })
       .on('end', () => {
-        resolve(Buffer.concat(chunks));
-      })
-      .pipe()
-      .on('data', (chunk: Buffer) => {
-        chunks.push(chunk);
-      })
-      .on('end', () => {
+        console.log('FFmpeg conversion completed successfully');
         resolve(Buffer.concat(chunks));
       });
+
+    // Create a writable stream to collect output
+    const stream = command.pipe();
+    stream.on('data', (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+    stream.on('error', (err) => {
+      console.error('FFmpeg stream error:', err);
+      reject(err);
+    });
   });
 }
 
@@ -134,6 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const transcript = transcription.text;
+      console.log("Whisper transcript:", transcript);
 
       // Step 2: Generate structured report using GPT
       const systemPrompt = `Ti si asistent koji pretvara glasovne poruke tehničara u strukturirane izvještaje o popravkama.
@@ -151,6 +158,7 @@ Odgovori SAMO u JSON formatu:
   "sparePartsUsed": "Lista korišćenih dijelova (ili null)"
 }`;
 
+      console.log("Calling GPT-4o with transcript...");
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -167,7 +175,9 @@ Odgovori SAMO u JSON formatu:
         response_format: { type: "json_object" },
       });
 
+      console.log("GPT-4o raw response:", completion.choices[0].message.content);
       const reportData = JSON.parse(completion.choices[0].message.content || "{}");
+      console.log("Parsed reportData:", reportData);
 
       res.json({
         transcript,
