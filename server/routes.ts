@@ -31,9 +31,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     { name: "clientContext", maxCount: 1 }
   ]), async (req, res) => {
     try {
+      console.log("=== Transcribe Voice Request ===");
+      console.log("Headers:", req.headers);
+      console.log("Body keys:", Object.keys(req.body));
+      console.log("Files:", req.files);
+      console.log("File object:", req.file);
+      
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       
       if (!files || !files.audio || files.audio.length === 0) {
+        console.error("No audio file found in request");
+        console.error("Files object:", files);
         return res.status(400).json({ message: "No audio file provided" });
       }
 
