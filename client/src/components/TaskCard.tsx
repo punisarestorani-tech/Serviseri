@@ -59,10 +59,10 @@ export default function TaskCard({
       </div>
       
       <div className="flex flex-col gap-1 mb-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-base text-muted-foreground">
           <span data-testid={`text-client-name-${taskId}`}>{clientName}</span>
           <span>•</span>
-          <span className="text-xs" data-testid={`text-created-date-${taskId}`}>
+          <span className="text-sm" data-testid={`text-created-date-${taskId}`}>
             {format(createdAt, "MMM d, yyyy")}
           </span>
         </div>
