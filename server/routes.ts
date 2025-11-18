@@ -384,7 +384,12 @@ Odgovori SAMO u JSON formatu:
   });
 
   app.delete("/api/tasks/:id", async (req, res) => {
-    await storage.deleteTask(req.params.id);
+    const task = await storage.getTask(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    
+    await storage.deleteTaskCascade(req.params.id);
     res.status(204).send();
   });
 
