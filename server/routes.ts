@@ -376,11 +376,23 @@ Odgovori SAMO u JSON formatu:
   });
 
   app.patch("/api/tasks/:id", async (req, res) => {
-    const task = await storage.updateTask(req.params.id, req.body);
-    if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+    try {
+      const updateData = { ...req.body };
+      
+      // Convert completedAt string to Date if provided
+      if (updateData.completedAt && typeof updateData.completedAt === 'string') {
+        updateData.completedAt = new Date(updateData.completedAt);
+      }
+      
+      const task = await storage.updateTask(req.params.id, updateData);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      res.json(task);
+    } catch (error: any) {
+      console.error("Error updating task:", error);
+      res.status(500).json({ message: error.message || "Failed to update task" });
     }
-    res.json(task);
   });
 
   app.delete("/api/tasks/:id", async (req, res) => {
