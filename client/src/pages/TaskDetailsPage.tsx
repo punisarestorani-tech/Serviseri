@@ -158,7 +158,7 @@ export default function TaskDetailsPage() {
           </div>
           <div className="flex flex-col items-end gap-3">
             <StatusBadge status={task.status as "pending" | "in_progress" | "completed"} />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 justify-end">
               <Button
                 variant="outline"
                 size="sm"
@@ -167,8 +167,20 @@ export default function TaskDetailsPage() {
                 data-testid="button-edit-task"
               >
                 <Edit className="h-4 w-4" />
-                {t.tasks.editTask}
+                <span className="hidden sm:inline">{t.tasks.editTask}</span>
               </Button>
+              {task.status === "completed" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => window.print()}
+                  data-testid="button-print-report"
+                >
+                  <Printer className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t.tasks.printReport}</span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -177,21 +189,9 @@ export default function TaskDetailsPage() {
                 data-testid="button-delete-task"
               >
                 <Trash2 className="h-4 w-4" />
-                {t.tasks.deleteTask}
+                <span className="hidden sm:inline">{t.tasks.deleteTask}</span>
               </Button>
             </div>
-            {task.status === "completed" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => window.print()}
-                data-testid="button-print-report"
-              >
-                <Printer className="h-4 w-4" />
-                {t.tasks.printReport}
-              </Button>
-            )}
           </div>
         </div>
 
