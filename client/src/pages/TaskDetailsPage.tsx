@@ -143,33 +143,6 @@ export default function TaskDetailsPage() {
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <Card className="p-6">
             <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
-              {t.clients.clientDetails}
-            </h3>
-            {client ? (
-              <div className="space-y-3">
-                <div>
-                  <p className="font-medium text-lg" data-testid="text-client-name">{client.name}</p>
-                </div>
-                {client.contact && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span data-testid="text-client-contact">{client.contact}</span>
-                  </div>
-                )}
-                {client.address && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span data-testid="text-client-address">{client.address}</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t.clients.clientInfoNotAvailable}</p>
-            )}
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
               {t.appliances.applianceDetails}
             </h3>
             {appliance ? (
@@ -220,6 +193,33 @@ export default function TaskDetailsPage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">{t.appliances.noApplianceAssigned}</p>
+            )}
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground">
+              {t.clients.clientDetails}
+            </h3>
+            {client ? (
+              <div className="space-y-3">
+                <div>
+                  <p className="font-medium text-lg" data-testid="text-client-name">{client.name}</p>
+                </div>
+                {client.contact && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span data-testid="text-client-contact">{client.contact}</span>
+                  </div>
+                )}
+                {client.address && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <span data-testid="text-client-address">{client.address}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t.clients.clientInfoNotAvailable}</p>
             )}
           </Card>
         </div>
