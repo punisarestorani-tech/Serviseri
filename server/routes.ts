@@ -418,11 +418,11 @@ Odgovori SAMO u JSON formatu:
     res.json(tasks);
   });
 
-  // Generate upcoming recurring task instances (30 days ahead)
+  // Generate upcoming recurring task instances (configurable days ahead)
   app.post("/api/tasks/recurring/generate-upcoming", async (req, res) => {
     try {
-      const { generateUpcomingRecurringInstances } = await import("./recurringTasksService");
-      const result = await generateUpcomingRecurringInstances(30);
+      const daysAhead = req.body?.daysAhead || 90; // Default 90 days (3 months)
+      const result = await generateUpcomingRecurringInstances(daysAhead);
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -432,7 +432,6 @@ Odgovori SAMO u JSON formatu:
   // Generate recurring tasks (legacy - for past due dates)
   app.post("/api/tasks/recurring/generate", async (req, res) => {
     try {
-      const { generateRecurringTasks } = await import("./recurringTasksService");
       const result = await generateRecurringTasks();
       res.json(result);
     } catch (error: any) {
