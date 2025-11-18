@@ -22,7 +22,7 @@ import { format } from "date-fns";
 import { useTranslation } from "@/i18n";
 import { getRecurrencePatternLabel, type RecurrencePattern } from "@/lib/recurringUtils";
 import type { Task, Client, Appliance, Report } from "@shared/schema";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient, apiRequest, HttpError } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function TaskDetailsPage() {
@@ -69,10 +69,17 @@ export default function TaskDetailsPage() {
       setLocation("/tasks");
     },
     onError: (error: any) => {
-      // Show specific error for completed tasks
-      const errorMessage = error.message?.includes("Cannot delete completed task") 
-        ? t.tasks.deleteCompletedError
-        : error.message || "Failed to delete task";
+      // Show specific error for completed tasks (HTTP 409)
+      let errorMessage: string;
+      
+      if (error instanceof HttpError && error.status === 409) {
+        errorMessage = t.tasks.deleteCompletedError;
+      } else if (error?.message && error.message.trim() !== '') {
+        errorMessage = error.message;
+      } else {
+        // Fallback to generic error message for network failures or empty errors
+        errorMessage = t.common.error;
+      }
       
       toast({
         description: errorMessage,

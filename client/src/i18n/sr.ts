@@ -19,6 +19,7 @@ export const sr = {
     required: 'Obavezno',
     print: 'Štampaj',
     unknownDate: 'Nepoznat datum',
+    error: 'Došlo je do greške. Molimo pokušajte ponovo.',
   },
 
   // Auth

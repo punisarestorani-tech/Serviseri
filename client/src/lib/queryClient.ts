@@ -5,10 +5,24 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 // In development (web), this will be empty string (same origin)
 const API_URL = import.meta.env.VITE_API_URL || '';
 
+export class HttpError extends Error {
+  status: number;
+  
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+  }
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let message = await res.text();
+    // If response body is empty, use statusText as fallback
+    if (!message || message.trim() === '') {
+      message = res.statusText || `HTTP Error ${res.status}`;
+    }
+    throw new HttpError(res.status, message);
   }
 }
 

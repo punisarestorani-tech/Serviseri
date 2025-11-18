@@ -19,6 +19,7 @@ export const en = {
     required: 'Required',
     print: 'Print',
     unknownDate: 'Unknown date',
+    error: 'An error occurred. Please try again.',
   },
 
   // Auth
