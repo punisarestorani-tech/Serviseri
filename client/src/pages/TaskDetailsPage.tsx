@@ -169,8 +169,9 @@ export default function TaskDetailsPage() {
           </div>
           <div className="flex flex-col items-end gap-3">
             <StatusBadge status={task.status as "pending" | "in_progress" | "completed"} />
-            <div className="flex flex-col gap-2 items-end">
-              <div className="flex flex-wrap gap-2 justify-end">
+            <div className="flex flex-col gap-3 items-end">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground hidden sm:inline">{t.tasks.editTaskHint || "Izmeni detalje"}</span>
                 <Button
                   variant="outline"
                   size="sm"
@@ -181,7 +182,10 @@ export default function TaskDetailsPage() {
                   <Edit className="h-4 w-4" />
                   <span className="hidden sm:inline">{t.tasks.editTask}</span>
                 </Button>
-                {task.status === "completed" && (
+              </div>
+              {task.status === "completed" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground hidden sm:inline">{t.tasks.printReportHint || "Štampaj izveštaj"}</span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -192,7 +196,10 @@ export default function TaskDetailsPage() {
                     <Printer className="h-4 w-4" />
                     <span className="hidden sm:inline">{t.tasks.printReport}</span>
                   </Button>
-                )}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground hidden sm:inline">{t.tasks.deleteTaskHint || "Obriši samo ovaj zadatak"}</span>
                 <Button
                   variant="outline"
                   size="sm"
@@ -203,7 +210,10 @@ export default function TaskDetailsPage() {
                   <Trash2 className="h-4 w-4" />
                   <span className="hidden sm:inline">{t.tasks.deleteTask}</span>
                 </Button>
-                {hasParentTask && parentTask && (
+              </div>
+              {hasParentTask && parentTask && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground hidden sm:inline">{t.tasks.deleteRecurringTaskHint || "Obriši sve buduće instance"}</span>
                   <Button
                     variant="outline"
                     size="sm"
@@ -214,12 +224,7 @@ export default function TaskDetailsPage() {
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">{t.tasks.deleteRecurringTask}</span>
                   </Button>
-                )}
-              </div>
-              {hasParentTask && parentTask && (
-                <p className="text-xs text-muted-foreground max-w-xs text-right">
-                  {t.tasks.deleteRecurringTaskHint || "Brisanje ponavljajućeg zadatka će obrisati sve buduće zakazane instance ovog zadatka."}
-                </p>
+                </div>
               )}
             </div>
           </div>
