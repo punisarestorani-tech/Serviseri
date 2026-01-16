@@ -47,6 +47,7 @@ export interface IStorage {
   getReport(id: string): Promise<Report | undefined>;
   getReportsByTask(taskId: string): Promise<Report[]>;
   createReport(report: InsertReport): Promise<Report>;
+  updateReport(id: string, report: Partial<InsertReport>): Promise<Report | undefined>;
   
   getAllDocuments(): Promise<Document[]>;
   getDocument(id: string): Promise<Document | undefined>;
@@ -279,6 +280,11 @@ export class DbStorage implements IStorage {
       id: randomUUID(),
       ...insertReport
     }).returning();
+    return result[0];
+  }
+
+  async updateReport(id: string, report: Partial<InsertReport>): Promise<Report | undefined> {
+    const result = await db.update(reports).set(report).where(eq(reports.id, id)).returning();
     return result[0];
   }
 

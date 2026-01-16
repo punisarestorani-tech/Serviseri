@@ -238,6 +238,7 @@ export const en = {
     title: 'Reports',
     addReport: 'Add Report',
     editReport: 'Edit Report',
+    editReportDescription: 'Edit service report details',
     deleteReport: 'Delete Report',
     createReport: 'Create Service Report',
     reportDetails: 'Report Details',
@@ -268,6 +269,8 @@ export const en = {
     submitSuccess: 'Report submitted and task marked as completed',
     submitError: 'Failed to submit report',
     updateSuccess: 'Report updated successfully',
+    updateError: 'Failed to update report',
+    clickToEdit: 'Click to edit report',
   },
 
   // Storage

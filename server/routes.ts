@@ -545,6 +545,18 @@ Odgovori SAMO u JSON formatu:
     }
   });
 
+  app.patch("/api/reports/:id", async (req, res) => {
+    try {
+      const report = await storage.updateReport(req.params.id, req.body);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      res.json(report);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Documents
   app.get("/api/documents", async (req, res) => {
     const documents = await storage.getAllDocuments();

@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import BackButton from "@/components/BackButton";
 import StatusBadge from "@/components/StatusBadge";
 import EditTaskDialog from "@/components/EditTaskDialog";
+import EditReportDialog from "@/components/EditReportDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ export default function TaskDetailsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteParentDialogOpen, setIsDeleteParentDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditReportDialogOpen, setIsEditReportDialogOpen] = useState(false);
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
@@ -366,11 +368,33 @@ export default function TaskDetailsPage() {
         </Card>
 
         {task.status === "completed" && report && (
-          <Card className="p-6 mb-6">
-            <h3 className="text-sm uppercase tracking-wide font-semibold mb-4 text-muted-foreground flex items-center gap-2 print:text-xl print:mb-6">
-              <FileText className="h-4 w-4 print:h-6 print:w-6" />
-              {t.reports.reportDetails}
-            </h3>
+          <Card 
+            className="p-6 mb-6 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setIsEditReportDialogOpen(true)}
+            data-testid="card-report"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-sm uppercase tracking-wide font-semibold text-muted-foreground flex items-center gap-2 print:text-xl">
+                <FileText className="h-4 w-4 print:h-6 print:w-6" />
+                {t.reports.reportDetails}
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 print:hidden"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditReportDialogOpen(true);
+                }}
+                data-testid="button-edit-report"
+              >
+                <Edit className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.reports.editReport}</span>
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4 print:hidden">
+              {t.reports.clickToEdit || "Kliknite da biste izmenili izveštaj"}
+            </p>
             <div className="space-y-4">
               {report.description && (
                 <div className="print:mb-6">
@@ -407,7 +431,10 @@ export default function TaskDetailsPage() {
                       <div
                         key={index}
                         className="aspect-square rounded-md overflow-hidden bg-muted group cursor-pointer print:cursor-default print:aspect-auto print:h-64"
-                        onClick={() => window.open(photoUrl, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(photoUrl, '_blank');
+                        }}
                         data-testid={`img-repair-${index}`}
                       >
                         <img
@@ -483,6 +510,14 @@ export default function TaskDetailsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {report && (
+        <EditReportDialog
+          open={isEditReportDialogOpen}
+          onOpenChange={setIsEditReportDialogOpen}
+          report={report}
+        />
+      )}
     </div>
   );
 }

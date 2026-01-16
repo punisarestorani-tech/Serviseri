@@ -238,6 +238,7 @@ export const sr = {
     title: 'Izveštaji',
     addReport: 'Dodaj Izveštaj',
     editReport: 'Izmeni Izveštaj',
+    editReportDescription: 'Izmenite detalje servisnog izveštaja',
     deleteReport: 'Obriši Izveštaj',
     createReport: 'Kreiraj Servisni Izveštaj',
     reportDetails: 'Detalji Izveštaja',
@@ -268,6 +269,8 @@ export const sr = {
     submitSuccess: 'Izveštaj poslat i zadatak označen kao završen',
     submitError: 'Greška pri slanju izveštaja',
     updateSuccess: 'Izveštaj uspešno ažuriran',
+    updateError: 'Greška pri ažuriranju izveštaja',
+    clickToEdit: 'Kliknite da biste izmenili izveštaj',
   },
 
   // Storage
