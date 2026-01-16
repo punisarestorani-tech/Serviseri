@@ -10,6 +10,7 @@ import {
   insertSparePartSchema 
 } from "@shared/schema";
 import { generateRecurringTasks, generateUpcomingRecurringInstances, calculateNextOccurrenceDate } from "./recurringTasksService";
+import { generateReportPdf } from "./pdfGenerator";
 import multer from "multer";
 import OpenAI from "openai";
 import ffmpeg from "fluent-ffmpeg";
@@ -497,6 +498,23 @@ Odgovori SAMO u JSON formatu:
       return res.status(404).json({ message: "Report not found" });
     }
     res.json(report);
+  });
+
+  app.get("/api/reports/:id/pdf", async (req, res) => {
+    try {
+      const pdfBuffer = await generateReportPdf(req.params.id);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="izvjestaj-${req.params.id}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error: any) {
+      console.error('PDF generation error:', error);
+      if (error.message === 'Report not found') {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      res.status(500).json({ message: "Failed to generate PDF" });
+    }
   });
 
   app.get("/api/tasks/:taskId/reports", async (req, res) => {
