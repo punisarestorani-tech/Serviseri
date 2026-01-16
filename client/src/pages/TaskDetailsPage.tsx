@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Mail, Phone, MapPin, Wrench, Calendar, Package, Hash, Repeat, Clock, Printer, FileText, Image, Edit, Trash2 } from "lucide-react";
+import { Mail, Phone, MapPin, Wrench, Calendar, Package, Hash, Repeat, Clock, Share2, FileText, Image, Edit, Trash2 } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -37,6 +37,38 @@ export default function TaskDetailsPage() {
   const [isDeleteParentDialogOpen, setIsDeleteParentDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isEditReportDialogOpen, setIsEditReportDialogOpen] = useState(false);
+
+  const handleShareReport = async () => {
+    if (!task || !report) return;
+    
+    const reportText = [
+      `${t.tasks.title}: ${task.description}`,
+      client ? `${t.clients.title}: ${client.name}` : '',
+      appliance ? `${t.appliances.title}: ${[appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ')}` : '',
+      report.description ? `\n${t.reports.description}: ${report.description}` : '',
+      report.workDuration ? `${t.reports.workDuration}: ${report.workDuration} min` : '',
+      report.sparePartsUsed ? `${t.reports.sparePartsUsed}: ${report.sparePartsUsed}` : '',
+      task.dueDate ? `${t.tasks.dueDate}: ${format(new Date(task.dueDate), "MMM d, yyyy")}` : '',
+    ].filter(Boolean).join('\n');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: task.description,
+          text: reportText,
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          toast({
+            description: t.common.error || 'Greška pri dijeljenju',
+            variant: "destructive",
+          });
+        }
+      }
+    } else {
+      window.print();
+    }
+  };
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
@@ -179,14 +211,14 @@ export default function TaskDetailsPage() {
             >
               <Edit className="h-4 w-4" />
             </Button>
-            {task.status === "completed" && (
+            {task.status === "completed" && report && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.print()}
-                data-testid="button-print-report"
+                onClick={handleShareReport}
+                data-testid="button-share-report"
               >
-                <Printer className="h-4 w-4" />
+                <Share2 className="h-4 w-4" />
               </Button>
             )}
             <Button
