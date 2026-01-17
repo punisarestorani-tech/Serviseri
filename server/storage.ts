@@ -31,7 +31,7 @@ export interface IStorage {
 
   // Clients
   getAllClients(organizationId: string): Promise<Client[]>;
-  getClient(id: string, organizationId: string): Promise<Client | undefined>;
+  getClient(id: string, organizationId?: string): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>, organizationId: string): Promise<Client | undefined>;
   deleteClient(id: string, organizationId: string): Promise<void>;
@@ -39,13 +39,13 @@ export interface IStorage {
   // Appliances
   getAllAppliances(organizationId: string): Promise<Appliance[]>;
   getAppliancesByClient(clientId: string, organizationId: string): Promise<Appliance[]>;
-  getAppliance(id: string, organizationId: string): Promise<Appliance | undefined>;
+  getAppliance(id: string, organizationId?: string): Promise<Appliance | undefined>;
   createAppliance(appliance: InsertAppliance, organizationId: string): Promise<Appliance>;
   updateAppliance(id: string, appliance: Partial<InsertAppliance>, organizationId: string): Promise<Appliance | undefined>;
   deleteAppliance(id: string, organizationId: string): Promise<void>;
 
   // Tasks
-  getAllTasks(organizationId: string): Promise<Task[]>;
+  getAllTasks(organizationId?: string): Promise<Task[]>;
   getTask(id: string, organizationId?: string): Promise<Task | undefined>;
   getTasksByStatus(status: string, organizationId: string): Promise<Task[]>;
   getTasksByClient(clientId: string, organizationId: string): Promise<Task[]>;
@@ -150,13 +150,18 @@ export class DbStorage implements IStorage {
     return await db.select().from(clients).where(eq(clients.organizationId, organizationId));
   }
 
-  async getClient(id: string, organizationId: string): Promise<Client | undefined> {
-    const result = await db.select().from(clients).where(
-      and(
-        eq(clients.id, id),
-        eq(clients.organizationId, organizationId)
-      )
-    );
+  async getClient(id: string, organizationId?: string): Promise<Client | undefined> {
+    if (organizationId) {
+      const result = await db.select().from(clients).where(
+        and(
+          eq(clients.id, id),
+          eq(clients.organizationId, organizationId)
+        )
+      );
+      return result[0];
+    }
+    // Without organizationId - internal use only
+    const result = await db.select().from(clients).where(eq(clients.id, id));
     return result[0];
   }
 
@@ -247,32 +252,37 @@ export class DbStorage implements IStorage {
     return result;
   }
 
-  async getAppliance(id: string, organizationId: string): Promise<Appliance | undefined> {
-    const result = await db
-      .select({
-        id: appliances.id,
-        clientId: appliances.clientId,
-        maker: appliances.maker,
-        type: appliances.type,
-        model: appliances.model,
-        serial: appliances.serial,
-        picture: appliances.picture,
-        city: appliances.city,
-        building: appliances.building,
-        room: appliances.room,
-        lastServiceDate: appliances.lastServiceDate,
-        nextServiceDate: appliances.nextServiceDate,
-        installDate: appliances.installDate,
-        createdAt: appliances.createdAt,
-      })
-      .from(appliances)
-      .innerJoin(clients, eq(appliances.clientId, clients.id))
-      .where(
-        and(
-          eq(appliances.id, id),
-          eq(clients.organizationId, organizationId)
-        )
-      );
+  async getAppliance(id: string, organizationId?: string): Promise<Appliance | undefined> {
+    if (organizationId) {
+      const result = await db
+        .select({
+          id: appliances.id,
+          clientId: appliances.clientId,
+          maker: appliances.maker,
+          type: appliances.type,
+          model: appliances.model,
+          serial: appliances.serial,
+          picture: appliances.picture,
+          city: appliances.city,
+          building: appliances.building,
+          room: appliances.room,
+          lastServiceDate: appliances.lastServiceDate,
+          nextServiceDate: appliances.nextServiceDate,
+          installDate: appliances.installDate,
+          createdAt: appliances.createdAt,
+        })
+        .from(appliances)
+        .innerJoin(clients, eq(appliances.clientId, clients.id))
+        .where(
+          and(
+            eq(appliances.id, id),
+            eq(clients.organizationId, organizationId)
+          )
+        );
+      return result[0];
+    }
+    // Without organizationId - internal use only
+    const result = await db.select().from(appliances).where(eq(appliances.id, id));
     return result[0];
   }
 
@@ -313,31 +323,35 @@ export class DbStorage implements IStorage {
 
   // ==================== TASKS ====================
 
-  async getAllTasks(organizationId: string): Promise<Task[]> {
-    const result = await db
-      .select({
-        id: tasks.id,
-        clientId: tasks.clientId,
-        applianceId: tasks.applianceId,
-        userId: tasks.userId,
-        status: tasks.status,
-        taskType: tasks.taskType,
-        description: tasks.description,
-        dueDate: tasks.dueDate,
-        priority: tasks.priority,
-        recurrencePattern: tasks.recurrencePattern,
-        recurrenceInterval: tasks.recurrenceInterval,
-        parentTaskId: tasks.parentTaskId,
-        isAutoGenerated: tasks.isAutoGenerated,
-        nextOccurrenceDate: tasks.nextOccurrenceDate,
-        createdAt: tasks.createdAt,
-        completedAt: tasks.completedAt,
-        reportId: tasks.reportId,
-      })
-      .from(tasks)
-      .innerJoin(clients, eq(tasks.clientId, clients.id))
-      .where(eq(clients.organizationId, organizationId));
-    return result;
+  async getAllTasks(organizationId?: string): Promise<Task[]> {
+    if (organizationId) {
+      const result = await db
+        .select({
+          id: tasks.id,
+          clientId: tasks.clientId,
+          applianceId: tasks.applianceId,
+          userId: tasks.userId,
+          status: tasks.status,
+          taskType: tasks.taskType,
+          description: tasks.description,
+          dueDate: tasks.dueDate,
+          priority: tasks.priority,
+          recurrencePattern: tasks.recurrencePattern,
+          recurrenceInterval: tasks.recurrenceInterval,
+          parentTaskId: tasks.parentTaskId,
+          isAutoGenerated: tasks.isAutoGenerated,
+          nextOccurrenceDate: tasks.nextOccurrenceDate,
+          createdAt: tasks.createdAt,
+          completedAt: tasks.completedAt,
+          reportId: tasks.reportId,
+        })
+        .from(tasks)
+        .innerJoin(clients, eq(tasks.clientId, clients.id))
+        .where(eq(clients.organizationId, organizationId));
+      return result;
+    }
+    // Without organizationId - get all tasks (for recurring tasks service)
+    return await db.select().from(tasks);
   }
 
   async getTask(id: string, organizationId?: string): Promise<Task | undefined> {
