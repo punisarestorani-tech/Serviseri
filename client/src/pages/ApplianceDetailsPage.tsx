@@ -1,6 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
-import BackButton from "@/components/BackButton";
+import { AppLayout } from "@/components/AppLayout";
 import EditApplianceDialog from "@/components/EditApplianceDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,23 +56,21 @@ export default function ApplianceDetailsPage() {
 
   if (isLoadingAppliance) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title={t.appliances.title}>
+        <div className="max-w-4xl mx-auto">
           <div className="text-center py-12 text-muted-foreground">{t.common.loading}</div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
   if (!appliance) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title={t.appliances.title}>
+        <div className="max-w-4xl mx-auto">
           <div className="text-center py-12 text-muted-foreground">{t.appliances.applianceNotFound}</div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
@@ -84,14 +81,8 @@ export default function ApplianceDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 print:hidden">
-          <BackButton />
-        </div>
-
+    <AppLayout title={applianceLabel}>
+      <div className="max-w-4xl mx-auto">
         <div className="flex justify-end gap-2 mb-4 print:hidden">
           <Button
             variant="outline"
@@ -270,7 +261,7 @@ export default function ApplianceDetailsPage() {
             appliance={appliance}
           />
         )}
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

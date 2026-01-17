@@ -1,6 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
-import BackButton from "@/components/BackButton";
+import { AppLayout } from "@/components/AppLayout";
 import ClientCard from "@/components/ClientCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -78,14 +77,8 @@ export default function ClientsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <BackButton />
-        </div>
-
+    <AppLayout title={t.clients.title}>
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">{t.clients.title}</h2>
           <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
@@ -218,7 +211,7 @@ export default function ClientsPage() {
             {t.clients.noClients}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

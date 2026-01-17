@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import BackButton from "@/components/BackButton";
+import { AppLayout } from "@/components/AppLayout";
 import TaskCard from "@/components/TaskCard";
 import AddApplianceDialog from "@/components/AddApplianceDialog";
 import AddClientDialog from "@/components/AddClientDialog";
@@ -190,14 +189,8 @@ export default function TasksPage() {
     });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <BackButton />
-        </div>
-
+    <AppLayout title={t.tasks.title}>
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">{t.tasks.title}</h2>
           <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
@@ -505,26 +498,26 @@ export default function TasksPage() {
             {t.tasks.noTasks}
           </div>
         )}
-      </main>
 
-      <AddApplianceDialog
-        open={isAddApplianceOpen}
-        onOpenChange={setIsAddApplianceOpen}
-        clientId={clientId}
-        onSuccess={(newApplianceId) => {
-          queryClient.invalidateQueries({ queryKey: ["/api/appliances"] });
-          setApplianceId(newApplianceId);
-        }}
-      />
+        <AddApplianceDialog
+          open={isAddApplianceOpen}
+          onOpenChange={setIsAddApplianceOpen}
+          clientId={clientId}
+          onSuccess={(newApplianceId) => {
+            queryClient.invalidateQueries({ queryKey: ["/api/appliances"] });
+            setApplianceId(newApplianceId);
+          }}
+        />
 
-      <AddClientDialog
-        open={isAddClientOpen}
-        onOpenChange={setIsAddClientOpen}
-        onSuccess={(newClientId) => {
-          queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
-          setClientId(newClientId);
-        }}
-      />
-    </div>
+        <AddClientDialog
+          open={isAddClientOpen}
+          onOpenChange={setIsAddClientOpen}
+          onSuccess={(newClientId) => {
+            queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+            setClientId(newClientId);
+          }}
+        />
+      </div>
+    </AppLayout>
   );
 }

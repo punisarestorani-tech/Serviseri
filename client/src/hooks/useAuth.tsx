@@ -6,7 +6,9 @@ interface User {
   username: string;
   fullName: string;
   email?: string;
-  userRole?: string;
+  userRole?: string; // super_admin | org_admin | technician
+  organizationId?: string;
+  organizationName?: string;
 }
 
 interface AuthContextType {

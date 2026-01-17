@@ -1,6 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
-import BackButton from "@/components/BackButton";
+import { AppLayout } from "@/components/AppLayout";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceRecordButton from "@/components/VoiceRecordButton";
 import { Card } from "@/components/ui/card";
@@ -77,14 +76,8 @@ export default function CreateReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <BackButton />
-        </div>
-
+    <AppLayout title={t.reports.createReport}>
+      <div className="max-w-3xl mx-auto">
         <h2 className="text-3xl font-bold mb-6">{t.reports.createReport}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -190,7 +183,7 @@ export default function CreateReportPage() {
             </Button>
           </div>
         </form>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

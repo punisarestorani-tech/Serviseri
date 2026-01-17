@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
+import { AppLayout } from "@/components/AppLayout";
 import BackButton from "@/components/BackButton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,41 +34,37 @@ export default function ClientDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title={t.clients.title}>
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <BackButton />
           </div>
           <div className="text-center py-12 text-muted-foreground">
             {t.common.loading}
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title={t.clients.title}>
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <BackButton />
           </div>
           <div className="text-center py-12 text-muted-foreground">
             {t.clients.clientNotFound}
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout title={client.name}>
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <BackButton />
         </div>
@@ -214,22 +210,22 @@ export default function ClientDetailsPage() {
             </div>
           )}
         </Card>
-      </main>
 
-      <AddApplianceDialog
-        open={isAddApplianceOpen}
-        onOpenChange={setIsAddApplianceOpen}
-        clientId={clientId}
-        onSuccess={(applianceId) => {
-          setLocation(`/appliances/${applianceId}`);
-        }}
-      />
+        <AddApplianceDialog
+          open={isAddApplianceOpen}
+          onOpenChange={setIsAddApplianceOpen}
+          clientId={clientId}
+          onSuccess={(applianceId) => {
+            setLocation(`/appliances/${applianceId}`);
+          }}
+        />
 
-      <EditClientDialog
-        open={isEditClientOpen}
-        onOpenChange={setIsEditClientOpen}
-        client={client}
-      />
-    </div>
+        <EditClientDialog
+          open={isEditClientOpen}
+          onOpenChange={setIsEditClientOpen}
+          client={client}
+        />
+      </div>
+    </AppLayout>
   );
 }

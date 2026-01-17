@@ -1,6 +1,6 @@
-import Header from "@/components/Header";
+import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
-import { ClipboardList, Users, Package } from "lucide-react";
+import { ClipboardList, Users, Package, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useTranslation } from "@/i18n";
 
@@ -15,7 +15,8 @@ export default function DashboardPage() {
       description: t.nav.tasksDescription,
       icon: ClipboardList,
       path: "/tasks",
-      color: "text-blue-600 dark:text-blue-400",
+      gradient: "from-blue-500 to-cyan-500",
+      bgGradient: "from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50",
     },
     {
       id: "clients",
@@ -23,7 +24,8 @@ export default function DashboardPage() {
       description: t.nav.clientsDescription,
       icon: Users,
       path: "/clients",
-      color: "text-green-600 dark:text-green-400",
+      gradient: "from-green-500 to-emerald-500",
+      bgGradient: "from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50",
     },
     {
       id: "storage",
@@ -31,35 +33,48 @@ export default function DashboardPage() {
       description: t.nav.storageDescription,
       icon: Package,
       path: "/storage",
-      color: "text-purple-600 dark:text-purple-400",
+      gradient: "from-purple-500 to-pink-500",
+      bgGradient: "from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-3xl font-bold mb-8">{t.nav.dashboard}</h2>
-        
+    <AppLayout title={t.nav.dashboard}>
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold mb-2">{t.nav.dashboard}</h2>
+        <p className="text-muted-foreground mb-8">Dobrodošli nazad. Odaberite sekciju za nastavak.</p>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {navigationCards.map((card) => {
             const Icon = card.icon;
             return (
               <Card
                 key={card.id}
-                className="p-6 cursor-pointer hover-elevate active-elevate-2 overflow-visible h-48 flex flex-col items-center justify-center text-center"
+                className={`p-6 cursor-pointer overflow-hidden h-52 flex flex-col relative group transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 bg-gradient-to-br ${card.bgGradient}`}
                 onClick={() => setLocation(card.path)}
                 data-testid={`card-nav-${card.id}`}
               >
-                <Icon className={`h-16 w-16 mb-4 ${card.color}`} />
-                <h3 className="text-2xl font-bold mb-2">{card.title}</h3>
-                <p className="text-sm text-muted-foreground">{card.description}</p>
+                {/* Icon with gradient background */}
+                <div className={`p-4 rounded-xl bg-gradient-to-br ${card.gradient} w-fit mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className="h-8 w-8 text-white" />
+                </div>
+
+                <h3 className="text-xl font-bold mb-2">{card.title}</h3>
+                <p className="text-sm text-muted-foreground flex-1">{card.description}</p>
+
+                {/* Arrow indicator */}
+                <div className="flex items-center gap-1 text-sm font-medium text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span>Otvori</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+
+                {/* Decorative gradient blob */}
+                <div className={`absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-gradient-to-br ${card.gradient} opacity-10 group-hover:opacity-20 transition-opacity`} />
               </Card>
             );
           })}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

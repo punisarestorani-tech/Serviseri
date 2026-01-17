@@ -41,8 +41,8 @@ export default function TaskCard({
   
   return (
     <Card
-      className={`p-5 hover-elevate active-elevate-2 cursor-pointer overflow-visible ${
-        isRecurring ? "border-l-4 border-l-primary" : ""
+      className={`p-5 cursor-pointer overflow-visible transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 group ${
+        isRecurring ? "border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent" : "hover:border-primary/30"
       }`}
       onClick={onClick}
       data-testid={`card-task-${taskId}`}

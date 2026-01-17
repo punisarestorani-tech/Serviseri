@@ -30,8 +30,8 @@ export const sr = {
     password: 'Lozinka',
     loginButton: 'Prijavi se',
     loginError: 'Neispravno korisničko ime ili lozinka',
-    appTitle: 'Tehniko Sistem',
-    appSubtitle: 'Budva Crna Gora',
+    appTitle: 'Servicex',
+    appSubtitle: 'Upravljanje Servisima',
     loginHelper: 'Prijavite se da biste upravljali servisnim zadacima',
   },
 

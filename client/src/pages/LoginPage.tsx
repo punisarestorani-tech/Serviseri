@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/i18n";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import tehnikoLogo from "@assets/ChatGPT Image Oct 28, 2025, 11_42_45 AM_1761649167166.png";
+import { Wrench } from "lucide-react";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -43,15 +43,20 @@ export default function LoginPage() {
           <LanguageSelector />
         </div>
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center mb-6">
-            <img 
-              src={tehnikoLogo} 
-              alt={`${t.auth.appTitle} - ${t.auth.appSubtitle}`}
-              className="w-full max-w-md h-auto"
-              data-testid="img-logo"
-            />
+          <div className="inline-flex items-center justify-center gap-3 mb-4">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg">
+              <Wrench className="h-8 w-8 text-white" />
+            </div>
+            <div className="text-left">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+                {t.auth.appTitle}
+              </h1>
+              <p className="text-sm text-muted-foreground font-medium tracking-wide">
+                {t.auth.appSubtitle}
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-6">
             {t.auth.loginHelper}
           </p>
         </div>

@@ -11,15 +11,15 @@ interface StatusBadgeProps {
 const statusConfig = {
   pending: {
     label: "Pending",
-    className: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
+    className: "bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border-amber-300 shadow-sm dark:from-amber-900/30 dark:to-orange-900/30 dark:text-amber-400 dark:border-amber-700",
   },
   in_progress: {
     label: "In Progress",
-    className: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+    className: "bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border-blue-300 shadow-sm dark:from-blue-900/30 dark:to-cyan-900/30 dark:text-blue-400 dark:border-blue-700",
   },
   completed: {
     label: "Completed",
-    className: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800",
+    className: "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-300 shadow-sm dark:from-green-900/30 dark:to-emerald-900/30 dark:text-green-400 dark:border-green-700",
   },
 };
 

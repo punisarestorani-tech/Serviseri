@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import BackButton from "@/components/BackButton";
+import { AppLayout } from "@/components/AppLayout";
 import AddApplianceDialog from "@/components/AddApplianceDialog";
 import UploadDocumentDialog from "@/components/UploadDocumentDialog";
 import { Card } from "@/components/ui/card";
@@ -112,14 +111,8 @@ export default function StoragePage() {
     });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <BackButton />
-        </div>
-
+    <AppLayout title={t.storage.title}>
+      <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl font-bold mb-6">{t.storage.title}</h2>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
@@ -424,21 +417,21 @@ export default function StoragePage() {
             )}
           </TabsContent>
         </Tabs>
-      </main>
 
-      <AddApplianceDialog
-        open={isAddApplianceOpen}
-        onOpenChange={setIsAddApplianceOpen}
-        clientId={selectedClientId === "all" ? "" : selectedClientId}
-        onSuccess={() => {
-          setSelectedClientId("");
-        }}
-      />
+        <AddApplianceDialog
+          open={isAddApplianceOpen}
+          onOpenChange={setIsAddApplianceOpen}
+          clientId={selectedClientId === "all" ? "" : selectedClientId}
+          onSuccess={() => {
+            setSelectedClientId("");
+          }}
+        />
 
-      <UploadDocumentDialog
-        open={isUploadDocumentOpen}
-        onOpenChange={setIsUploadDocumentOpen}
-      />
-    </div>
+        <UploadDocumentDialog
+          open={isUploadDocumentOpen}
+          onOpenChange={setIsUploadDocumentOpen}
+        />
+      </div>
+    </AppLayout>
   );
 }

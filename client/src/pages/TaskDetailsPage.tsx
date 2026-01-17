@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
+import { AppLayout } from "@/components/AppLayout";
 import BackButton from "@/components/BackButton";
 import StatusBadge from "@/components/StatusBadge";
 import EditTaskDialog from "@/components/EditTaskDialog";
@@ -165,45 +165,41 @@ export default function TaskDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title={t.tasks.title}>
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <BackButton label={t.common.back} />
           </div>
           <div className="text-center py-12 text-muted-foreground">
             {t.common.loading}
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title={t.tasks.title}>
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <BackButton />
           </div>
           <div className="text-center py-12 text-muted-foreground">
             {t.tasks.taskNotFound}
           </div>
-        </main>
-      </div>
+        </div>
+      </AppLayout>
     );
   }
 
-  const applianceLabel = appliance 
+  const applianceLabel = appliance
     ? [appliance.maker, appliance.type, appliance.model].filter(Boolean).join(' - ') || t.appliances.title
     : t.appliances.noApplianceAssigned;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout title={task.description}>
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <BackButton />
         </div>
@@ -449,9 +445,8 @@ export default function TaskDetailsPage() {
             {t.tasks.makeReport}
           </Button>
         )}
-      </main>
 
-      <EditTaskDialog
+        <EditTaskDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         task={task}
@@ -499,13 +494,14 @@ export default function TaskDetailsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {report && (
-        <EditReportDialog
-          open={isEditReportDialogOpen}
-          onOpenChange={setIsEditReportDialogOpen}
-          report={report}
-        />
-      )}
-    </div>
+        {report && (
+          <EditReportDialog
+            open={isEditReportDialogOpen}
+            onOpenChange={setIsEditReportDialogOpen}
+            report={report}
+          />
+        )}
+      </div>
+    </AppLayout>
   );
 }

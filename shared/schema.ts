@@ -1,7 +1,19 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, date, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, date, json, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Organizations table - must be defined first as other tables reference it
+export const organizations = pgTable("organizations", {
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
+  address: varchar("address"),
+  contactEmail: varchar("contact_email"),
+  contactPhone: varchar("contact_phone"),
+  logo: varchar("logo"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
 
 export const profiles = pgTable("profiles", {
   id: varchar("user_id").primaryKey(),
@@ -9,12 +21,14 @@ export const profiles = pgTable("profiles", {
   passwordHash: varchar("password_hash").notNull(),
   fullName: varchar("full_name").notNull(),
   email: varchar("email"),
-  userRole: varchar("user_role").default("technician"),
+  userRole: varchar("user_role").default("technician"), // super_admin | org_admin | technician
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "set null" }), // nullable for super_admin
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey(),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: varchar("name").notNull(),
   address: varchar("address"),
   contactName: varchar("contact_name"),
@@ -77,6 +91,7 @@ export const reports = pgTable("reports", {
 
 export const documents = pgTable("documents", {
   id: varchar("id").primaryKey(),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: varchar("name").notNull(),
   type: varchar("type"),
   url: varchar("url").notNull(),
@@ -87,6 +102,7 @@ export const documents = pgTable("documents", {
 
 export const spareParts = pgTable("spare_parts", {
   id: varchar("id").primaryKey(),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   name: varchar("name").notNull(),
   partNumber: varchar("part_number"),
   manufacturer: varchar("manufacturer"),
@@ -97,6 +113,7 @@ export const spareParts = pgTable("spare_parts", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true });
 export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, createdAt: true });
 export const insertClientSchema = createInsertSchema(clients).omit({ id: true, createdAt: true });
 export const insertApplianceSchema = createInsertSchema(appliances).omit({ id: true, createdAt: true });
@@ -136,6 +153,9 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, createdAt: true });
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true });
 export const insertSparePartSchema = createInsertSchema(spareParts).omit({ id: true, createdAt: true });
+
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;

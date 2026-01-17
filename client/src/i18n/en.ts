@@ -30,8 +30,8 @@ export const en = {
     password: 'Password',
     loginButton: 'Sign In',
     loginError: 'Invalid username or password',
-    appTitle: 'Tehniko System',
-    appSubtitle: 'Budva Montenegro',
+    appTitle: 'Servicex',
+    appSubtitle: 'Service Management',
     loginHelper: 'Sign in to manage your service tasks',
   },
 
