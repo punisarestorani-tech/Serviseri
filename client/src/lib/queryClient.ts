@@ -10,7 +10,7 @@ const isCapacitor = typeof window !== 'undefined' &&
 // In production (Android app), this will be the Replit deployment URL
 // In development (web), this will be empty string (same origin)
 // FALLBACK: If running in Capacitor without env var, use hardcoded production URL
-const PRODUCTION_API_URL = 'https://service-manager-bu2ninn8n.replit.app';
+const PRODUCTION_API_URL = 'https://serviseri-8ffl.vercel.app';
 const API_URL = import.meta.env.VITE_API_URL || (isCapacitor ? PRODUCTION_API_URL : '');
 
 // Debug logging for mobile
