@@ -13,10 +13,6 @@ import {
 } from "@shared/schema";
 import { generateRecurringTasks, generateUpcomingRecurringInstances, calculateNextOccurrenceDate } from "./recurringTasksService";
 import { generateReportPdf } from "./pdfGenerator";
-import multer from "multer";
-import OpenAI from "openai";
-import ffmpeg from "fluent-ffmpeg";
-import { Readable } from "stream";
 import crypto from "crypto";
 
 // Password hashing functions
@@ -41,50 +37,6 @@ function verifyPassword(password: string, hash: string): Promise<boolean> {
     crypto.scrypt(password, salt, 64, (err, derivedKey) => {
       if (err) reject(err);
       resolve(derivedKey.toString('hex') === key);
-    });
-  });
-}
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Configure multer for memory storage (for audio files)
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit (Whisper API limit)
-});
-
-// Helper function to convert audio to MP3 using FFmpeg
-async function convertToMp3(inputBuffer: Buffer, inputFormat: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    const inputStream = Readable.from(inputBuffer);
-
-    const command = ffmpeg(inputStream)
-      .inputFormat(inputFormat)
-      .audioCodec('libmp3lame')
-      .audioBitrate('128k')
-      .audioChannels(1)
-      .audioFrequency(16000)
-      .format('mp3')
-      .on('error', (err) => {
-        console.error('FFmpeg conversion error:', err);
-        reject(err);
-      })
-      .on('end', () => {
-        console.log('FFmpeg conversion completed successfully');
-        resolve(Buffer.concat(chunks));
-      });
-
-    const stream = command.pipe();
-    stream.on('data', (chunk: Buffer) => {
-      chunks.push(chunk);
-    });
-    stream.on('error', (err) => {
-      console.error('FFmpeg stream error:', err);
-      reject(err);
     });
   });
 }
@@ -872,106 +824,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/spare-parts/:id", requireOrg, async (req, res) => {
     await storage.deleteSparePart(req.params.id, req.session.organizationId!);
     res.status(204).send();
-  });
-
-  // ==================== VOICE TRANSCRIPTION ====================
-
-  app.post("/api/transcribe-voice", requireOrg, upload.fields([
-    { name: "audio", maxCount: 1 },
-    { name: "applianceContext", maxCount: 1 },
-    { name: "clientContext", maxCount: 1 }
-  ]), async (req, res) => {
-    try {
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
-      if (!files || !files.audio || files.audio.length === 0) {
-        return res.status(400).json({ message: "No audio file provided" });
-      }
-
-      const audioFile = files.audio[0];
-
-      let applianceContext = null;
-      let clientContext = null;
-
-      try {
-        if (req.body.applianceContext) {
-          applianceContext = JSON.parse(req.body.applianceContext);
-        }
-        if (req.body.clientContext) {
-          clientContext = JSON.parse(req.body.clientContext);
-        }
-      } catch (parseError) {
-        return res.status(400).json({ message: "Invalid context format" });
-      }
-
-      let contextDescription = "";
-      if (clientContext) {
-        contextDescription += `Klijent: ${clientContext.name}. `;
-      }
-      if (applianceContext) {
-        contextDescription += `Uređaj: ${applianceContext.maker} ${applianceContext.type}`;
-        if (applianceContext.model) {
-          contextDescription += ` ${applianceContext.model}`;
-        }
-        if (applianceContext.serialNumber) {
-          contextDescription += ` (Serijski broj: ${applianceContext.serialNumber})`;
-        }
-        contextDescription += ". ";
-      }
-
-      let audioBuffer = audioFile.buffer;
-      let audioFilename = "audio.mp3";
-      let audioMimetype = "audio/mp3";
-
-      if (audioFile.mimetype === "audio/webm" || audioFile.mimetype.includes("webm")) {
-        try {
-          audioBuffer = await convertToMp3(audioFile.buffer, "webm");
-        } catch (conversionError) {
-          return res.status(500).json({ message: "Failed to convert audio format" });
-        }
-      }
-
-      const transcription = await openai.audio.transcriptions.create({
-        file: new File([audioBuffer], audioFilename, { type: audioMimetype }),
-        model: "whisper-1",
-        language: "sr",
-        prompt: contextDescription + "Tehničar opisuje popravku uređaja, delove koji su korišćeni, i vreme rada.",
-      });
-
-      const transcript = transcription.text;
-
-      const systemPrompt = `Ti si asistent koji pretvara glasovne poruke tehničara u strukturirane izvještaje o popravkama.
-
-${contextDescription ? `KONTEKST SERVISA:\n${contextDescription}\n` : ""}
-Iz transkripta glasovne poruke, ekstraktuj:
-1. **Opis rada**: Detaljan opis šta je urađeno na popravci.
-2. **Trajanje rada**: Koliko minuta je trajao posao (procijeni ako nije navedeno)
-3. **Korišćeni dijelovi**: Lista rezervnih dijelova koji su korišćeni (ako ih ima)
-
-Odgovori SAMO u JSON formatu:
-{
-  "description": "Detaljan opis rada...",
-  "workDuration": 60,
-  "sparePartsUsed": "Lista korišćenih dijelova (ili null)"
-}`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Glasovna poruka tehničara: "${transcript}"` },
-        ],
-        temperature: 0.7,
-        response_format: { type: "json_object" },
-      });
-
-      const reportData = JSON.parse(completion.choices[0].message.content || "{}");
-
-      res.json({ transcript, reportData });
-    } catch (error: any) {
-      console.error("Voice transcription error:", error);
-      res.status(500).json({ message: error.message || "Failed to process voice message" });
-    }
   });
 
   const httpServer = createServer(app);
