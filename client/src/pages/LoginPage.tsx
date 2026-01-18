@@ -25,9 +25,10 @@ export default function LoginPage() {
       const data = await response.json();
 
       console.log('[Login] Success:', data);
-      // Clear all cached data and refetch user
+      // Clear all cached data and set user data directly from login response
       queryClient.clear();
-      await queryClient.refetchQueries({ queryKey: ["/api/user/me"] });
+      // Set the user data directly to avoid race condition with session persistence
+      queryClient.setQueryData(["/api/user/me"], data.user);
       setLocation('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
